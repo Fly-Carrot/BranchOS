@@ -5,7 +5,7 @@
 [![Agent Skill](https://img.shields.io/badge/agent-skill-purple)](skills/branchos/SKILL.md)
 [![Mermaid](https://img.shields.io/badge/diagrams-mermaid-orange)](docs/branchos_visual_report.md)
 [![Harness](https://img.shields.io/badge/harness-agnostic-teal)](docs/harness_integration.md)
-[![Status](https://img.shields.io/badge/status-v0.1%20portable-lightgrey)](#design-boundaries)
+[![Status](https://img.shields.io/badge/status-v0.2%20shared--fabric--ready-lightgrey)](#design-boundaries)
 
 **Architecture-first virtual task branching for agentic work.**
 
