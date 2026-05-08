@@ -21,10 +21,10 @@ Do not run runtime boot once per virtual branch. A virtual branch is not a runti
 ## Checkpoints
 
 ```bash
-python3 adapters/local/branchos_checkpoint.py --checkpoint task_start
-python3 adapters/local/branchos_checkpoint.py --checkpoint pre_dispatch
-python3 adapters/local/branchos_checkpoint.py --checkpoint pre_merge
-python3 adapters/local/branchos_checkpoint.py --checkpoint final_response
+python3 adapters/local/branchos_checkpoint.py --checkpoint task_start --emit-summary
+python3 adapters/local/branchos_checkpoint.py --checkpoint pre_dispatch --emit-summary
+python3 adapters/local/branchos_checkpoint.py --checkpoint pre_merge --emit-summary
+python3 adapters/local/branchos_checkpoint.py --checkpoint final_response --emit-summary --emit-delta
 ```
 
 By default, this adapter reads:
@@ -33,3 +33,8 @@ By default, this adapter reads:
 - `.agents/branchos/branch_events.ndjson`
 
 Both paths are local project state, not global memory.
+
+Use the JSON `branchos_summary` field for task-start branch visibility and
+`branchos_delta` for final branch-report visibility.
+
+Detailed harness placement: [`../../docs/harness_integration.md`](../../docs/harness_integration.md)

@@ -17,6 +17,7 @@ from typing import Any
 
 
 CHECKPOINTS = {"task_start", "pre_dispatch", "pre_merge", "final_response"}
+OPEN_STATUSES = {"proposed", "active", "blocked", "reviewing", "ready_to_merge", "hotfix"}
 
 
 def workspace_root() -> Path:
@@ -43,6 +44,93 @@ def append_event(path: Path, event: dict[str, Any]) -> None:
         handle.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")
 
 
+def all_branches(state: dict[str, Any]) -> list[dict[str, Any]]:
+    branches: list[dict[str, Any]] = []
+    for key in ("standing_branches", "working_branches"):
+        value = state.get(key, [])
+        if isinstance(value, list):
+            branches.extend(branch for branch in value if isinstance(branch, dict))
+    return branches
+
+
+def branch_label(branch: dict[str, Any]) -> str:
+    branch_id = str(branch.get("id") or "UNKNOWN")
+    name = str(branch.get("name") or "Unnamed")
+    status = str(branch.get("status") or "unknown")
+    return f"{branch_id} {name} ({status})"
+
+
+def checkpoint_summary(state: dict[str, Any], checkpoint: str) -> dict[str, Any]:
+    branches = all_branches(state)
+    standing = [branch for branch in state.get("standing_branches", []) if isinstance(branch, dict)]
+    working = [branch for branch in state.get("working_branches", []) if isinstance(branch, dict)]
+    status_counts: dict[str, int] = {}
+    for branch in branches:
+        status = str(branch.get("status") or "unknown")
+        status_counts[status] = status_counts.get(status, 0) + 1
+
+    return {
+        "checkpoint": checkpoint,
+        "root_task": {
+            "id": state.get("root_task", {}).get("id"),
+            "objective": state.get("root_task", {}).get("objective"),
+            "current_phase": state.get("root_task", {}).get("current_phase"),
+            "complexity": state.get("root_task", {}).get("complexity"),
+        },
+        "branch_counts": {
+            "standing": len(standing),
+            "working": len(working),
+            "total": len(branches),
+            "by_status": status_counts,
+        },
+        "standing_branches": [branch_label(branch) for branch in standing],
+        "working_branches": [branch_label(branch) for branch in working],
+        "merge_queue": state.get("merge_queue", []),
+        "pruned": state.get("pruned", []),
+    }
+
+
+def recent_events(path: Path, limit: int = 8) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    events: list[dict[str, Any]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(event, dict):
+            events.append(event)
+    return events[-limit:]
+
+
+def checkpoint_delta(state: dict[str, Any], events_path: Path) -> dict[str, Any]:
+    branches = all_branches(state)
+    open_branches = [
+        branch_label(branch)
+        for branch in branches
+        if str(branch.get("status") or "unknown") in OPEN_STATUSES
+    ]
+    merged_branches = [
+        branch_label(branch)
+        for branch in branches
+        if str(branch.get("status") or "unknown") == "merged"
+    ]
+    blocked_branches = [
+        branch_label(branch)
+        for branch in branches
+        if str(branch.get("status") or "unknown") == "blocked"
+    ]
+    return {
+        "merged_branches": merged_branches,
+        "open_branches": open_branches,
+        "blocked_branches": blocked_branches,
+        "recent_events": recent_events(events_path),
+    }
+
+
 def main() -> int:
     root = workspace_root()
     parser = argparse.ArgumentParser(description="Run a local BranchOS checkpoint.")
@@ -51,6 +139,8 @@ def main() -> int:
     parser.add_argument("--events", type=Path, default=root / ".agents" / "branchos" / "branch_events.ndjson")
     parser.add_argument("--validator", type=Path, default=root / "skills" / "branchos" / "scripts" / "validate_branch_state.py")
     parser.add_argument("--summary", default="")
+    parser.add_argument("--emit-summary", action="store_true", help="Include a compact branch map summary in the JSON output.")
+    parser.add_argument("--emit-delta", action="store_true", help="Include a compact current-state delta and recent branch events.")
     args = parser.parse_args()
 
     state = load_state(args.state)
@@ -82,7 +172,12 @@ def main() -> int:
         "warnings": validation.get("warnings", []),
     }
     append_event(args.events, event)
-    print(json.dumps({"event_written": str(args.events), **validation}, ensure_ascii=False, indent=2))
+    result = {"event_written": str(args.events), **validation}
+    if args.emit_summary:
+        result["branchos_summary"] = checkpoint_summary(state, args.checkpoint)
+    if args.emit_delta:
+        result["branchos_delta"] = checkpoint_delta(state, args.events)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
     return completed.returncode
 
 

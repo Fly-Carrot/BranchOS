@@ -4,6 +4,7 @@
 [![Python](https://img.shields.io/badge/python-stdlib%20only-blue)](skills/branchos/scripts/validate_branch_state.py)
 [![Agent Skill](https://img.shields.io/badge/agent-skill-purple)](skills/branchos/SKILL.md)
 [![Mermaid](https://img.shields.io/badge/diagrams-mermaid-orange)](docs/branchos_visual_report.md)
+[![Harness](https://img.shields.io/badge/harness-agnostic-teal)](docs/harness_integration.md)
 [![Status](https://img.shields.io/badge/status-v0.1%20portable-lightgrey)](#design-boundaries)
 
 **Architecture-first virtual task branching for agentic work.**
@@ -167,6 +168,24 @@ python3 skills/branchos/scripts/validate_branch_state.py examples/github_intro/b
 
 Complete walkthrough: [`docs/branchos_visual_report.md`](docs/branchos_visual_report.md)
 
+## Harness Integration
+
+BranchOS is a skill plus a lightweight checkpoint adapter. It does not force a specific agent harness, preflight system, memory layer, or orchestration runtime.
+
+The recommended placement is:
+
+```text
+harness boot -> context load -> BranchOS task_start
+  -> normal root lifecycle
+  -> BranchOS pre_dispatch before specialist calls
+  -> BranchOS pre_merge before synthesis
+  -> BranchOS final_response before harness postflight
+```
+
+For users with an existing lifecycle, the rule is simple: run the root task lifecycle once, and let BranchOS maintain local branch state inside it. Do not run boot, postflight, or the full lifecycle once per virtual branch.
+
+Adapter guide: [`docs/harness_integration.md`](docs/harness_integration.md)
+
 ## Repository Structure
 
 ```text
@@ -187,6 +206,11 @@ examples/github_intro/
   branch_packet_architecture.md    # example scoped dispatch packet
   merge_report.md                  # example synthesis report
   run_test.sh                      # runnable proof
+
+docs/
+  branchos_visual_report.md        # visual branch execution report
+  github_intro_test.md             # GitHub intro proof narrative
+  harness_integration.md           # harness-agnostic placement contract
 ```
 
 ## Checkpoints
@@ -205,6 +229,16 @@ examples/github_intro/
 - BranchOS does not replace runtime boot, phase logging, postflight sync, or memory systems.
 - BranchOS should not write global memory files directly.
 - Branch count is chosen by the agent from task complexity, with standing branches separated from dynamic working branches.
+
+## Companion Projects
+
+BranchOS can stand alone, but it was designed to sit beside a broader agent operating system:
+
+- [Fabric](https://github.com/Fly-Carrot/Fabric): setup-first shared fabric for Codex and Gemini with canonical sync, rich memory lanes, and a macOS dashboard.
+- [Agent Shared Fabric](https://github.com/Fly-Carrot/agent-shared-fabric): governance layer for multi-agent coordination, receipts, memory lanes, MCP and skills registries, and runtime bridges.
+- [Gemini-2 CLI](https://github.com/Fly-Carrot/gemini-cli): shared-fabric-aware Gemini CLI fork with loop, skills, agents, and runtime orchestration.
+- [Gemini CLI Optimization](https://github.com/Fly-Carrot/Gemini_CLI_Optimization): bootstrap layer, launcher, deployment kit, docs, and workflow assets for the Gemini-2 system.
+- [NotebookLM to Obsidian](https://github.com/Fly-Carrot/NotebookLM-to-Obisidian): one-click lightweight NotebookLM to Obsidian sync app.
 
 ## Tags
 
