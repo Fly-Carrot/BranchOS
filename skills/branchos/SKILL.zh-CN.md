@@ -26,7 +26,7 @@ BranchOS 是一个 meta-planning skill。它把复杂用户目标转化为虚拟
 ## 核心流程
 
 1. 确认 root objective 和 locked constraints。
-2. 判断是否需要 BranchOS；如果需要，创建或加载 branch state。
+2. 判断是否需要 BranchOS；如果需要，初始化或加载合法的 branch state。
 3. 让 agent 根据任务形状自行决定分支结构，不强制固定模板。
 4. 区分 standing branches 和 dynamic working branches。
 5. 在路由 skill、MCP tool 或 subagent 之前创建 branch packet。
@@ -90,5 +90,11 @@ standing branches 不计入动态预算。dynamic working branches 的软上限�
 
 - `.agents/branchos/branch_state.yaml`
 - `.agents/branchos/branch_events.ndjson`
+
+不要用 `touch` 或 `echo '{}'` 创建 state file；空对象不是合法的 BranchOS 分支图。如果 state 缺失、为空或格式无效，用下面命令初始化或修复：
+
+```bash
+python3 scripts/init_branch_state.py --workspace <workspace> --objective "<current task objective>" --complexity medium
+```
 
 这些是 task/project state files，不是 global memory。长期决策应该通过 runtime 的 canonical postflight 或 memory mechanism 总结写回。

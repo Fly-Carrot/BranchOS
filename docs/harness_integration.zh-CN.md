@@ -42,8 +42,9 @@ BranchOS planning layer:
 
 When BranchOS is active:
 1. Load the BranchOS skill.
-2. Create or load the harness-local branch state, recommended at `.agents/branchos/branch_state.yaml`.
+2. 初始化或加载 harness 本地 branch state，推荐路径为 `.agents/branchos/branch_state.yaml`。不要使用 `touch` 或 `echo '{}'`。
 3. Run the local BranchOS checkpoint at task start:
+   `python3 skills/branchos/scripts/init_branch_state.py --objective "<current task objective>" --complexity medium`
    `python3 adapters/local/branchos_checkpoint.py --checkpoint task_start --emit-summary`
 4. During planning, let the agent create standing branches and dynamic working branches according to task complexity.
 5. Before calling a specialized skill, MCP tool, orchestration layer, script, or subagent, create a branch packet and run:
@@ -111,6 +112,11 @@ workspace 只保留任务本地状态：
 任意 workspace 都可以使用共享 checkpoint 脚本：
 
 ```bash
+python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/init_branch_state.py \
+  --workspace /path/to/workspace \
+  --objective "<current task objective>" \
+  --complexity medium
+
 python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/branchos_checkpoint.py \
   --workspace /path/to/workspace \
   --checkpoint task_start \

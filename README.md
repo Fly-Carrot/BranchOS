@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/python-stdlib%20only-blue)](skills/branchos/scripts/validate_branch_state.py)
 [![Agent Skill](https://img.shields.io/badge/agent-skill-purple)](skills/branchos/SKILL.md)
 [![Harness](https://img.shields.io/badge/harness-agnostic-teal)](docs/harness_integration.md)
-[![Status](https://img.shields.io/badge/status-v0.2%20shared--fabric--ready-lightgrey)](#design-boundaries)
+[![Status](https://img.shields.io/badge/status-v0.3%20init--hardened-lightgrey)](#design-boundaries)
 
 **Architecture-first virtual task branching for agentic work.**
 
@@ -26,7 +26,8 @@ Paste this into your agent or project instructions:
 Use BranchOS as the planning layer for medium or complex tasks.
 
 BranchOS is virtual task branching, not Git branching.
-After normal harness boot and context loading, create or load `.agents/branchos/branch_state.yaml`.
+After normal harness boot and context loading, initialize or load `.agents/branchos/branch_state.yaml`.
+Never create BranchOS state with `touch` or `echo '{}'`; use the BranchOS init script when state is missing or invalid.
 Run one root task lifecycle only. Do not run boot, postflight, or the full lifecycle per virtual branch.
 If the harness has a shared skill root, check that before declaring BranchOS unavailable.
 
@@ -38,6 +39,7 @@ Final synthesis should use merged branch outputs only.
 Local checkpoint adapter:
 
 ```bash
+python3 skills/branchos/scripts/init_branch_state.py --objective "<current task objective>" --complexity medium
 python3 adapters/local/branchos_checkpoint.py --checkpoint task_start --emit-summary
 python3 adapters/local/branchos_checkpoint.py --checkpoint pre_dispatch --emit-summary
 python3 adapters/local/branchos_checkpoint.py --checkpoint pre_merge --emit-summary
@@ -58,6 +60,11 @@ python3 adapters/shared_fabric/install_branchos_shared_fabric.py \
 Then every workspace can use the shared checkpoint script while keeping branch state local:
 
 ```bash
+python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/init_branch_state.py \
+  --workspace /path/to/workspace \
+  --objective "<current task objective>" \
+  --complexity medium
+
 python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/branchos_checkpoint.py \
   --workspace /path/to/workspace \
   --checkpoint task_start \

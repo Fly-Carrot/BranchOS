@@ -23,6 +23,7 @@ Do not run runtime boot once per virtual branch. A virtual branch is not a runti
 ## Checkpoints
 
 ```bash
+python3 skills/branchos/scripts/init_branch_state.py --objective "<current task objective>" --complexity medium
 python3 adapters/local/branchos_checkpoint.py --checkpoint task_start --emit-summary
 python3 adapters/local/branchos_checkpoint.py --checkpoint pre_dispatch --emit-summary
 python3 adapters/local/branchos_checkpoint.py --checkpoint pre_merge --emit-summary
@@ -35,6 +36,7 @@ By default, this adapter reads:
 - `.agents/branchos/branch_events.ndjson`
 
 Both paths are local project state, not global memory.
+Do not create `branch_state.yaml` with `touch` or `echo '{}'`; use the init script above.
 
 Use the JSON `branchos_summary` field for task-start branch visibility and
 `branchos_delta` for final branch-report visibility.

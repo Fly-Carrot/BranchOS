@@ -26,7 +26,7 @@ Do not use BranchOS for simple one-step answers, tiny edits, or tasks where a sh
 ## Core Workflow
 
 1. Confirm the root objective and locked constraints.
-2. Decide whether BranchOS is warranted; if yes, create or load the branch state.
+2. Decide whether BranchOS is warranted; if yes, initialize or load a valid branch state.
 3. Let the agent choose the branch structure from the task shape. Do not force a fixed template.
 4. Separate standing branches from dynamic working branches.
 5. Before routing a skill, MCP tool, or subagent, create a branch packet.
@@ -90,5 +90,11 @@ Preferred project-local paths:
 
 - `.agents/branchos/branch_state.yaml`
 - `.agents/branchos/branch_events.ndjson`
+
+Never create the state file with `touch` or `echo '{}'`; an empty object is not a valid BranchOS branch graph. If state is missing, empty, or invalid, initialize or repair it with:
+
+```bash
+python3 scripts/init_branch_state.py --workspace <workspace> --objective "<current task objective>" --complexity medium
+```
 
 These are task/project state files, not global memory. Long-lived decisions should be summarized through the runtime's canonical postflight or memory mechanism.

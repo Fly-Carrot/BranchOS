@@ -23,6 +23,7 @@ runtime boot
 ## Checkpoints
 
 ```bash
+python3 skills/branchos/scripts/init_branch_state.py --objective "<current task objective>" --complexity medium
 python3 adapters/local/branchos_checkpoint.py --checkpoint task_start --emit-summary
 python3 adapters/local/branchos_checkpoint.py --checkpoint pre_dispatch --emit-summary
 python3 adapters/local/branchos_checkpoint.py --checkpoint pre_merge --emit-summary
@@ -35,6 +36,7 @@ python3 adapters/local/branchos_checkpoint.py --checkpoint final_response --emit
 - `.agents/branchos/branch_events.ndjson`
 
 这两个路径都是项目本地状态，不是 global memory。
+不要用 `touch` 或 `echo '{}'` 创建 `branch_state.yaml`；请使用上面的 init script。
 
 使用 JSON 中的 `branchos_summary` 查看任务开始时的分支地图；使用 `branchos_delta` 查看最终分支报告。
 

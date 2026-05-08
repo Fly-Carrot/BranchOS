@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shlex
 import subprocess
 import sys
 from datetime import datetime
@@ -21,23 +22,52 @@ CHECKPOINTS = {"task_start", "pre_dispatch", "pre_merge", "final_response"}
 OPEN_STATUSES = {"proposed", "active", "blocked", "reviewing", "ready_to_merge", "hotfix"}
 
 
+def initialization_hint(workspace: Path, init_script: Path) -> str:
+    return (
+        "Do not initialize BranchOS with touch or echo '{}'. Run: "
+        f"python3 {shlex.quote(str(init_script))} --workspace {shlex.quote(str(workspace))} "
+        '--objective "<current task objective>" --complexity medium'
+    )
+
+
 def local_now() -> str:
     return datetime.now().astimezone().replace(microsecond=0).isoformat()
 
 
-def load_state(path: Path) -> dict[str, Any]:
+def load_state(path: Path, workspace: Path, init_script: Path) -> dict[str, Any]:
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        text = path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(
             f"BranchOS state file not found: {path}. "
-            "Create it from the current task branch graph before running this checkpoint."
+            + initialization_hint(workspace, init_script)
         ) from exc
+    if not text.strip():
+        raise SystemExit(
+            f"BranchOS state file is empty: {path}. "
+            + initialization_hint(workspace, init_script)
+        )
+    try:
+        data = json.loads(text)
     except json.JSONDecodeError as exc:
-        raise SystemExit(f"Cannot parse state file as JSON-compatible YAML: {path}: {exc}") from exc
+        raise SystemExit(
+            f"Cannot parse state file as JSON-compatible YAML: {path}: {exc}. "
+            + initialization_hint(workspace, init_script)
+        ) from exc
     if not isinstance(data, dict):
         raise SystemExit(f"State file must contain an object: {path}")
     return data
+
+
+def needs_initialization_hint(validation: dict[str, Any]) -> bool:
+    errors = " ".join(str(error) for error in validation.get("errors", []))
+    markers = (
+        "schema_version must be 1",
+        "root_task must be an object",
+        "task_start requires at least one",
+        "branch_budget must be an object",
+    )
+    return any(marker in errors for marker in markers)
 
 
 def append_event(path: Path, event: dict[str, Any]) -> None:
@@ -151,7 +181,8 @@ def main() -> int:
     state_path = args.state or workspace / ".agents" / "branchos" / "branch_state.yaml"
     events_path = args.events or workspace / ".agents" / "branchos" / "branch_events.ndjson"
 
-    state = load_state(state_path)
+    init_script = script_dir / "init_branch_state.py"
+    state = load_state(state_path, workspace, init_script)
     task_id = str(state.get("root_task", {}).get("id") or "session")
     command = [
         sys.executable,
@@ -182,6 +213,8 @@ def main() -> int:
     }
     append_event(events_path, event)
     result = {"event_written": str(events_path), **validation}
+    if needs_initialization_hint(validation):
+        result["initialization_hint"] = initialization_hint(workspace, init_script)
     if args.emit_summary:
         result["branchos_summary"] = checkpoint_summary(state, args.checkpoint)
     if args.emit_delta:

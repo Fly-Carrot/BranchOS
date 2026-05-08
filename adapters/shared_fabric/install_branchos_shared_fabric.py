@@ -94,6 +94,7 @@ def update_generated_skill_count(sources_path: Path, global_root: Path) -> None:
 
 def render_global_rule(global_root: Path) -> str:
     skill_root = global_root / "skills" / "generated" / "branchos"
+    init = skill_root / "scripts" / "init_branch_state.py"
     checkpoint = skill_root / "scripts" / "branchos_checkpoint.py"
     return "\n".join(
         [
@@ -102,16 +103,18 @@ def render_global_rule(global_root: Path) -> str:
             "MANDATORY: BranchOS 共享规划层（Shared Planning Layer）—— 对 medium / complex 任务，在 canonical boot 与上下文加载之后、专门能力分发之前，必须评估是否启用 BranchOS。BranchOS 是虚拟任务分支系统，不是 Git 分支，也不替代 shared-fabric 的 preflight、六阶段 phase logging 或 postflight sync。",
             "",
             f"- Shared BranchOS skill source: `{skill_root}`",
+            f"- Shared BranchOS init script: `{init}`",
             f"- Shared BranchOS checkpoint script: `{checkpoint}`",
             "- Workspace-local state remains under `<workspace>/.agents/branchos/branch_state.yaml` and `<workspace>/.agents/branchos/branch_events.ndjson`.",
             "- Do not claim BranchOS is unavailable merely because the current workspace lacks `skills/branchos` or `.agents/branchos/branchos_checkpoint.py`; check the shared skill source first.",
             "- If the shared skill source exists, load BranchOS from Global Agent Fabric and create/load only the workspace-local branch state.",
+            "- Never initialize BranchOS with `touch` or `echo '{}'`; missing, empty, or invalid state must be initialized or repaired with the shared init script.",
             "- Do not run `preflight_check.py` or `sync_all.py` per virtual branch.",
             "- Do not emit the full `route -> plan -> review -> dispatch -> execute -> report` lifecycle per virtual branch. The root task gets one canonical lifecycle; BranchOS maintains branch state inside it.",
             "",
             "When BranchOS is active:",
             "1. Load the BranchOS skill from the shared skill source.",
-            "2. Create or load `<workspace>/.agents/branchos/branch_state.yaml`.",
+            f"2. Create or repair `<workspace>/.agents/branchos/branch_state.yaml`: `python3 {init} --workspace <workspace> --objective \"<current task objective>\" --complexity medium`.",
             f"3. Run task-start checkpoint: `python3 {checkpoint} --workspace <workspace> --checkpoint task_start --emit-summary`.",
             f"4. Before specialized skill/MCP/script/Maestro/subagent dispatch, create a branch packet and run: `python3 {checkpoint} --workspace <workspace> --checkpoint pre_dispatch --emit-summary`.",
             f"5. Before merging branch outputs into root synthesis, run: `python3 {checkpoint} --workspace <workspace> --checkpoint pre_merge --emit-summary`.",
