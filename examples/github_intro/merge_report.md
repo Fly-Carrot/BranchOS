@@ -1,5 +1,7 @@
 # BranchOS Merge Report
 
+[English](merge_report.md) | [Simplified Chinese](merge_report.zh-CN.md)
+
 Root Task: Design a research-grade bird-acoustic analysis pipeline.
 
 ## Merged Branches

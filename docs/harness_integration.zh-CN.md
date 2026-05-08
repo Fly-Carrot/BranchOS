@@ -1,36 +1,36 @@
-# Harness Integration
+# Harness 集成
 
-[English](harness_integration.md) | [Simplified Chinese](harness_integration.zh-CN.md)
+[English](harness_integration.md) | [简体中文](harness_integration.zh-CN.md)
 
-BranchOS is a planning layer, not a runtime. It should plug into whatever harness already owns boot, context loading, permissions, memory, logs, and final sync.
+BranchOS 是规划层，不是 runtime。它应该接入已经负责 boot、上下文加载、权限、memory、日志和最终同步的 harness。
 
-## Core Contract
+## 核心契约
 
-For medium or complex tasks, activate BranchOS after the harness has loaded project context and before specialized dispatch.
+对于 medium 或 complex 任务，在 harness 已经加载项目上下文之后、专门能力分发之前启用 BranchOS。
 
-BranchOS owns:
+BranchOS 负责：
 
-- virtual branch graph
-- branch packets
+- 虚拟分支图
+- branch packet
 - checkpoint validation
 - branch event log
-- merge contracts
+- merge contract
 - final branch delta
 
-Your harness owns:
+harness 负责：
 
 - runtime boot
-- context and memory loading
-- lifecycle phase logs
-- tool permissions
+- context 与 memory 加载
+- 生命周期 phase log
+- 工具权限
 - postflight sync
 - durable memory write-back
 
-Do not run runtime boot per virtual branch. Do not run your full task lifecycle per virtual branch. The root task gets one lifecycle; BranchOS maintains lightweight local branch state inside that lifecycle.
+不要为每个虚拟分支运行 runtime boot。不要为每个虚拟分支运行完整任务生命周期。根任务只有一个生命周期；BranchOS 在这个生命周期内部维护轻量的本地分支状态。
 
-## Generic Snippet
+## 通用 Snippet
 
-Use this as the harness-agnostic pattern:
+这是 harness-agnostic 模式：
 
 ```text
 BranchOS planning layer:
@@ -61,9 +61,9 @@ Routing relationship:
 - If BranchOS is not installed in the current workspace, say so explicitly and fall back to the normal harness workflow.
 ```
 
-## Shared-Fabric-Style Mapping
+## Shared-Fabric 风格映射
 
-If your harness has a canonical boot plus a root lifecycle such as `route -> plan -> review -> dispatch -> execute -> report`, place BranchOS like this:
+如果你的 harness 有 canonical boot 和 `route -> plan -> review -> dispatch -> execute -> report` 这样的根生命周期，可以这样放置 BranchOS：
 
 ```text
 canonical boot
@@ -78,15 +78,15 @@ canonical boot
   -> canonical postflight sync
 ```
 
-The important boundary is that BranchOS does not replace boot or postflight. It enriches them with local branch state:
+关键边界是：BranchOS 不替代 boot 或 postflight。它只用本地分支状态增强它们。
 
-- Start output can include `[BRANCHOS_ACTIVE]`, root task, standing branches, working branches, and next checkpoint.
-- End output can include `[BRANCHOS_REPORT]`, created branches, updated branches, merged branches, pruned branches, blocked branches, and artifacts.
-- Postflight can attach BranchOS artifacts through the harness's supported sync mechanism.
+- 开始输出可以包含 `[BRANCHOS_ACTIVE]`、root task、standing branches、working branches 和 next checkpoint。
+- 结束输出可以包含 `[BRANCHOS_REPORT]`、created branches、updated branches、merged branches、pruned branches、blocked branches 和 artifacts。
+- postflight 可以通过 harness 支持的 sync 机制附加 BranchOS artifacts。
 
-## Global Agent Fabric Mode
+## Global Agent Fabric 模式
 
-In a shared-fabric architecture, install BranchOS once into the shared skill root instead of copying it into every project:
+在 shared-fabric 架构中，推荐把 BranchOS 一次性安装到 shared skill root，而不是复制到每个项目：
 
 ```bash
 python3 adapters/shared_fabric/install_branchos_shared_fabric.py \
@@ -95,20 +95,20 @@ python3 adapters/shared_fabric/install_branchos_shared_fabric.py \
   --export-antigravity
 ```
 
-The installed skill lives at:
+安装后的 skill 位于：
 
 ```text
 <global-agent-fabric>/skills/generated/branchos
 ```
 
-The workspace keeps only task-local state:
+workspace 只保留任务本地状态：
 
 ```text
 <workspace>/.agents/branchos/branch_state.yaml
 <workspace>/.agents/branchos/branch_events.ndjson
 ```
 
-Use the shared checkpoint script from any workspace:
+任意 workspace 都可以使用共享 checkpoint 脚本：
 
 ```bash
 python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/branchos_checkpoint.py \
@@ -117,19 +117,19 @@ python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/branchos_
   --emit-summary
 ```
 
-Important runtime rule:
+重要 runtime 规则：
 
 ```text
-Do not declare BranchOS unavailable just because the current workspace lacks `skills/branchos`.
-First check whether the harness has a shared BranchOS skill, such as:
-`<global-agent-fabric>/skills/generated/branchos`.
+不要仅仅因为当前 workspace 缺少 `skills/branchos` 就声明 BranchOS 不可用。
+必须先检查 harness 是否有共享 BranchOS skill，例如：
+`<global-agent-fabric>/skills/generated/branchos`。
 ```
 
-This is the recommended mode for multi-workspace systems: BranchOS is globally installed, while branch state remains project-local.
+这是 multi-workspace 系统的推荐模式：BranchOS 全局安装，branch state 项目本地保存。
 
-## Output Contract
+## 输出契约
 
-At task start, the harness can surface:
+任务开始时，harness 可以展示：
 
 ```text
 [BRANCHOS_ACTIVE]
@@ -139,7 +139,7 @@ Working branches: B001 Data Ingestion, B002 Model Strategy, B003 Ecological Indi
 Next checkpoint: pre_dispatch
 ```
 
-At task end, the harness can surface:
+任务结束时，harness 可以展示：
 
 ```text
 [BRANCHOS_REPORT]
@@ -150,8 +150,8 @@ Pruned: none
 Artifacts: .agents/branchos/branch_state.yaml, .agents/branchos/branch_events.ndjson, merge_report.md
 ```
 
-Standing branches may remain active if they represent durable lenses rather than one-off work products. Working branches should be merged, blocked, or pruned before the final answer.
+如果 standing branches 代表长期视角，它们可以保持 active。working branches 在最终答案前应该被 merged、blocked 或 pruned。
 
-## Portability Rule
+## 可移植性规则
 
-Keep shared-fabric, Maestro, CI, dashboard, or memory-specific behavior in a local adapter or harness snippet. Keep BranchOS core portable: skill instructions, branch schema, checkpoint script, templates, and examples.
+把 shared-fabric、Maestro、CI、dashboard 或 memory 相关行为放在 local adapter 或 harness snippet 中。BranchOS core 保持可移植：skill instructions、branch schema、checkpoint script、templates 和 examples。

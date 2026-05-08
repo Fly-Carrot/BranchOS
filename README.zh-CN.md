@@ -1,0 +1,159 @@
+# BranchOS
+
+[English](README.md) | [简体中文](README.zh-CN.md)
+
+[![Demo](https://img.shields.io/badge/demo-5%20checkpoints%20passing-brightgreen)](#运行-demo)
+[![Python](https://img.shields.io/badge/python-stdlib%20only-blue)](skills/branchos/scripts/validate_branch_state.py)
+[![Agent Skill](https://img.shields.io/badge/agent-skill-purple)](skills/branchos/SKILL.md)
+[![Harness](https://img.shields.io/badge/harness-agnostic-teal)](docs/harness_integration.zh-CN.md)
+[![Status](https://img.shields.io/badge/status-v0.2%20shared--fabric--ready-lightgrey)](#设计边界)
+
+**面向 agent 工作的架构优先虚拟任务分支系统。**
+
+BranchOS 帮助 agent 不再把复杂任务当成一条扁平 checklist。它先建立虚拟分支图，再通过有边界的 branch packet 路由工具和子代理，最后只把通过 merge contract 的分支结果合成到最终答案。
+
+它不是 Git 分支。它是任务架构。
+
+```text
+复杂任务 -> 虚拟分支图 -> branch packet -> 有边界的能力分发 -> merge contract -> 最终合成
+```
+
+## 启动 Prompt
+
+把下面内容放进你的 agent 或项目指令中：
+
+```text
+Use BranchOS as the planning layer for medium or complex tasks.
+
+BranchOS is virtual task branching, not Git branching.
+After normal harness boot and context loading, create or load `.agents/branchos/branch_state.yaml`.
+Run one root task lifecycle only. Do not run boot, postflight, or the full lifecycle per virtual branch.
+If the harness has a shared skill root, check that before declaring BranchOS unavailable.
+
+Before specialist dispatch, create a branch packet.
+Before root synthesis, validate merge contracts.
+Final synthesis should use merged branch outputs only.
+```
+
+本地 checkpoint adapter：
+
+```bash
+python3 adapters/local/branchos_checkpoint.py --checkpoint task_start --emit-summary
+python3 adapters/local/branchos_checkpoint.py --checkpoint pre_dispatch --emit-summary
+python3 adapters/local/branchos_checkpoint.py --checkpoint pre_merge --emit-summary
+python3 adapters/local/branchos_checkpoint.py --checkpoint final_response --emit-summary --emit-delta
+```
+
+## Shared Fabric 安装
+
+对于 Global Agent Fabric 类型的 harness，把 BranchOS 一次性安装到共享 skill root：
+
+```bash
+python3 adapters/shared_fabric/install_branchos_shared_fabric.py \
+  --global-root /path/to/global-agent-fabric \
+  --update-global-rule \
+  --export-antigravity
+```
+
+之后每个 workspace 都可以使用共享 checkpoint 脚本，同时把分支状态保留在本地：
+
+```bash
+python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/branchos_checkpoint.py \
+  --workspace /path/to/workspace \
+  --checkpoint task_start \
+  --emit-summary
+```
+
+workspace 状态保存在：
+
+```text
+<workspace>/.agents/branchos/branch_state.yaml
+<workspace>/.agents/branchos/branch_events.ndjson
+```
+
+## 示例
+
+任务：
+
+> 设计一个研究级鸟类声学分析管线：输入野外录音，检测鸟类鸣声，计算生态指标，验证模型质量，并生成可复现报告。
+
+BranchOS 会把它变成：
+
+```mermaid
+flowchart TB
+    ROOT["鸟类声学管线"]
+    S1["意图与约束"]
+    S2["架构边界"]
+    S3["验证"]
+    B1["数据接入"]
+    B2["模型策略"]
+    B3["生态指标"]
+    B4["报告"]
+
+    ROOT --> S1
+    ROOT --> S2
+    ROOT --> S3
+    ROOT --> B1 --> B2 --> B3 --> B4
+    S2 -. 指导 .-> B1
+    S2 -. 指导 .-> B2
+    S2 -. 指导 .-> B3
+    S3 -. 验证 .-> B3
+    S3 -. 验证 .-> B4
+```
+
+每个分支都有自己的目的、允许调用的能力、预期输出和合并条件。完整可视化说明见 [`docs/branchos_visual_report.zh-CN.md`](docs/branchos_visual_report.zh-CN.md)。
+
+## 运行 Demo
+
+```bash
+bash examples/github_intro/run_test.sh
+```
+
+预期输出：
+
+```text
+[1/5] task_start fixture: ok
+[2/5] pre_dispatch fixture: ok
+[3/5] pre_merge fixture: ok
+[4/5] final_response fixture: ok
+[5/5] unresolved final_response guard: ok
+BranchOS GitHub intro test passed.
+```
+
+## 包含内容
+
+```text
+skills/branchos/                         # 可移植 skill
+skills/branchos/scripts/                 # validator 与 checkpoint adapter
+adapters/local/                          # 项目本地 adapter
+adapters/shared_fabric/                  # shared fabric 安装器
+examples/github_intro/                   # 可运行证明
+docs/                                    # 集成文档与可视化报告
+```
+
+## 文档
+
+- [Harness 集成](docs/harness_integration.zh-CN.md)
+- [可视化分支报告](docs/branchos_visual_report.zh-CN.md)
+- [GitHub intro 测试](docs/github_intro_test.zh-CN.md)
+- [BranchOS skill](skills/branchos/SKILL.zh-CN.md)
+- 英文文档：[README.md](README.md)
+
+## 设计边界
+
+- BranchOS 不是 Git 分支。
+- BranchOS 不是 workflow runtime。
+- BranchOS 不替代 runtime boot、phase logging、postflight sync 或 memory system。
+- BranchOS 只维护任务本地状态，长期记忆写回由宿主 harness 负责。
+
+## 相关项目
+
+- [Fabric](https://github.com/Fly-Carrot/Fabric)
+- [Agent Shared Fabric](https://github.com/Fly-Carrot/agent-shared-fabric)
+- [Gemini-2 CLI](https://github.com/Fly-Carrot/gemini-cli)
+- [Gemini CLI Optimization](https://github.com/Fly-Carrot/Gemini_CLI_Optimization)
+- [NotebookLM to Obsidian](https://github.com/Fly-Carrot/NotebookLM-to-Obisidian)
+
+## 标签
+
+`agentic-workflow` `llm-agents` `task-planning` `virtual-branches` `skill-routing` `mcp-ready` `merge-contracts` `persistent-artifacts`

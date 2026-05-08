@@ -1,5 +1,7 @@
 # Local BranchOS Adapter
 
+[English](integration_adapter.md) | [Simplified Chinese](integration_adapter.zh-CN.md)
+
 BranchOS is portable at the skill layer. Runtime-specific boot, memory, and sync systems should integrate through a local adapter like this one.
 
 ## Placement

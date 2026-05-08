@@ -1,5 +1,7 @@
 # BranchOS
 
+[English](README.md) | [Simplified Chinese](README.zh-CN.md)
+
 [![Demo](https://img.shields.io/badge/demo-5%20checkpoints%20passing-brightgreen)](#run-the-demo)
 [![Python](https://img.shields.io/badge/python-stdlib%20only-blue)](skills/branchos/scripts/validate_branch_state.py)
 [![Agent Skill](https://img.shields.io/badge/agent-skill-purple)](skills/branchos/SKILL.md)
@@ -135,6 +137,7 @@ docs/                                    # integration and visual reports
 - [Visual branch report](docs/branchos_visual_report.md)
 - [GitHub intro test](docs/github_intro_test.md)
 - [BranchOS skill](skills/branchos/SKILL.md)
+- Chinese docs: [README.zh-CN.md](README.zh-CN.md)
 
 ## Design Boundaries
 

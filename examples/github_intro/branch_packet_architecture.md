@@ -1,5 +1,7 @@
 # Branch Packet
 
+[English](branch_packet_architecture.md) | [Simplified Chinese](branch_packet_architecture.zh-CN.md)
+
 Branch ID: S002  
 Branch Name: Architecture Boundary  
 Parent: ROOT  

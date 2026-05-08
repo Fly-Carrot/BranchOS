@@ -1,5 +1,7 @@
 # GitHub Intro Test: BranchOS On A Research Pipeline Task
 
+[English](github_intro_test.md) | [Simplified Chinese](github_intro_test.zh-CN.md)
+
 This document is a public-facing walkthrough of how BranchOS behaves on a medium-to-complex task.
 
 ## Test Task
