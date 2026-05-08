@@ -12,7 +12,7 @@
 
 BranchOS helps an agent stop treating complex work as a flat checklist. It creates a virtual branch graph, routes tools and subagents through scoped branch packets, and merges outputs only after merge contracts pass.
 
-It is not Git branching. It is task architecture.
+It can run as a standalone skill, or as the shared planning layer inside [Fabric](https://github.com/Fly-Carrot/Fabric) and [Agent Shared Fabric](https://github.com/Fly-Carrot/agent-shared-fabric). It is not Git branching. It is task architecture.
 
 ```text
 complex task -> virtual branch graph -> branch packets -> scoped dispatch -> merge contracts -> final synthesis
@@ -145,14 +145,6 @@ docs/                                    # integration and visual reports
 - BranchOS is not a workflow runtime.
 - BranchOS does not replace runtime boot, phase logging, postflight sync, or memory systems.
 - BranchOS keeps task state local and leaves durable memory write-back to the host harness.
-
-## Companion Projects
-
-- [Fabric](https://github.com/Fly-Carrot/Fabric)
-- [Agent Shared Fabric](https://github.com/Fly-Carrot/agent-shared-fabric)
-- [Gemini-2 CLI](https://github.com/Fly-Carrot/gemini-cli)
-- [Gemini CLI Optimization](https://github.com/Fly-Carrot/Gemini_CLI_Optimization)
-- [NotebookLM to Obsidian](https://github.com/Fly-Carrot/NotebookLM-to-Obisidian)
 
 ## Tags
 

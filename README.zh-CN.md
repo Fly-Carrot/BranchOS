@@ -12,7 +12,7 @@
 
 BranchOS 帮助 agent 不再把复杂任务当成一条扁平 checklist。它先建立虚拟分支图，再通过有边界的 branch packet 路由工具和子代理，最后只把通过 merge contract 的分支结果合成到最终答案。
 
-它不是 Git 分支。它是任务架构。
+它既可以作为独立 skill 使用，也可以作为 [Fabric](https://github.com/Fly-Carrot/Fabric) 和 [Agent Shared Fabric](https://github.com/Fly-Carrot/agent-shared-fabric) 中的共享规划层使用。它不是 Git 分支。它是任务架构。
 
 ```text
 复杂任务 -> 虚拟分支图 -> branch packet -> 有边界的能力分发 -> merge contract -> 最终合成
@@ -145,14 +145,6 @@ docs/                                    # 集成文档与可视化报告
 - BranchOS 不是 workflow runtime。
 - BranchOS 不替代 runtime boot、phase logging、postflight sync 或 memory system。
 - BranchOS 只维护任务本地状态，长期记忆写回由宿主 harness 负责。
-
-## 相关项目
-
-- [Fabric](https://github.com/Fly-Carrot/Fabric)
-- [Agent Shared Fabric](https://github.com/Fly-Carrot/agent-shared-fabric)
-- [Gemini-2 CLI](https://github.com/Fly-Carrot/gemini-cli)
-- [Gemini CLI Optimization](https://github.com/Fly-Carrot/Gemini_CLI_Optimization)
-- [NotebookLM to Obsidian](https://github.com/Fly-Carrot/NotebookLM-to-Obisidian)
 
 ## 标签
 
