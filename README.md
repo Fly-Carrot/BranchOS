@@ -17,6 +17,40 @@ It is not Git branching. It is task architecture.
 complex task -> virtual branch graph -> scoped tool/skill dispatch -> merge contracts -> final synthesis
 ```
 
+## Start-up Prompt
+
+Paste this into your agent's project instructions when you want BranchOS to guide medium or complex work:
+
+```text
+Use BranchOS as the planning layer for medium or complex tasks.
+
+BranchOS is virtual task branching, not Git branching.
+It should create and maintain a task branch graph with standing branches, working branches, branch packets, checkpoint validation, and merge contracts.
+
+Activation:
+- After the harness has completed its normal boot and context loading, evaluate whether the task is medium or complex.
+- If BranchOS is active, create or load `.agents/branchos/branch_state.yaml`.
+- Run one root task lifecycle only. Do not run boot, postflight, or the full lifecycle per virtual branch.
+
+Checkpoints:
+- At task start, run:
+  `python3 adapters/local/branchos_checkpoint.py --checkpoint task_start --emit-summary`
+- Before dispatching a specialized skill, MCP tool, script, orchestration layer, or subagent, create a branch packet and run:
+  `python3 adapters/local/branchos_checkpoint.py --checkpoint pre_dispatch --emit-summary`
+- Before merging branch outputs into the root synthesis, run:
+  `python3 adapters/local/branchos_checkpoint.py --checkpoint pre_merge --emit-summary`
+- Before final response or harness postflight, run:
+  `python3 adapters/local/branchos_checkpoint.py --checkpoint final_response --emit-summary --emit-delta`
+
+Routing:
+- BranchOS decides the task architecture and branch packets.
+- Specialist tools and agents should work inside the relevant branch packet.
+- Final synthesis should use merged branch outputs only.
+- If BranchOS is unavailable in the current workspace, say so explicitly and fall back to the normal harness workflow.
+```
+
+Harness-specific placement notes: [`docs/harness_integration.md`](docs/harness_integration.md)
+
 ## Why BranchOS Exists
 
 Most agent work today is still too ephemeral. A model reads the prompt, reasons in the chat context, calls tools, and then the structure that guided the work fades away.
