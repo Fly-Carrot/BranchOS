@@ -27,7 +27,9 @@ python3 skills/branchos/scripts/init_branch_state.py --objective "<current task 
 python3 adapters/local/branchos_checkpoint.py --checkpoint task_start --emit-summary
 python3 skills/branchos/scripts/prepare_dispatch.py --name "<dispatch branch>" --scope "<bounded scope>" --expected-output "<expected result>" --capability scripts:"<tool>"
 python3 adapters/local/branchos_checkpoint.py --checkpoint pre_dispatch --emit-summary
+python3 skills/branchos/scripts/resolve_branch.py --branch-id B001 --status ready_to_merge --output "<branch result summary>"
 python3 adapters/local/branchos_checkpoint.py --checkpoint pre_merge --emit-summary
+python3 skills/branchos/scripts/resolve_branch.py --branch-id B001 --status merged --output "<merged branch result>"
 python3 adapters/local/branchos_checkpoint.py --checkpoint final_response --emit-summary --emit-delta
 ```
 

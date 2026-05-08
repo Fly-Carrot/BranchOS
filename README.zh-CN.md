@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/python-stdlib%20only-blue)](skills/branchos/scripts/validate_branch_state.py)
 [![Agent Skill](https://img.shields.io/badge/agent-skill-purple)](skills/branchos/SKILL.md)
 [![Harness](https://img.shields.io/badge/harness-agnostic-teal)](docs/harness_integration.zh-CN.md)
-[![Status](https://img.shields.io/badge/status-v0.4%20dispatch--ready-lightgrey)](#设计边界)
+[![Status](https://img.shields.io/badge/status-v0.5%20task--aware-lightgrey)](#设计边界)
 
 **面向 agent 工作的架构优先虚拟任务分支系统。**
 
@@ -34,6 +34,7 @@ If the harness has a shared skill root, check that before declaring BranchOS una
 Before specialist dispatch, create a branch packet.
 Do not use init --force to fix pre_dispatch; prepare a working branch packet instead.
 Before root synthesis, validate merge contracts.
+Before final response, resolve working branches as merged, blocked, or pruned.
 Final synthesis should use merged branch outputs only.
 ```
 
@@ -44,7 +45,9 @@ python3 skills/branchos/scripts/init_branch_state.py --objective "<current task 
 python3 adapters/local/branchos_checkpoint.py --checkpoint task_start --emit-summary
 python3 skills/branchos/scripts/prepare_dispatch.py --name "<dispatch branch>" --scope "<bounded scope>" --expected-output "<expected result>" --capability scripts:"<tool>"
 python3 adapters/local/branchos_checkpoint.py --checkpoint pre_dispatch --emit-summary
+python3 skills/branchos/scripts/resolve_branch.py --branch-id B001 --status ready_to_merge --output "<branch result summary>"
 python3 adapters/local/branchos_checkpoint.py --checkpoint pre_merge --emit-summary
+python3 skills/branchos/scripts/resolve_branch.py --branch-id B001 --status merged --output "<merged branch result>"
 python3 adapters/local/branchos_checkpoint.py --checkpoint final_response --emit-summary --emit-delta
 ```
 
@@ -59,26 +62,16 @@ python3 adapters/shared_fabric/install_branchos_shared_fabric.py \
   --export-antigravity
 ```
 
-之后每个 workspace 都可以使用共享 checkpoint 脚本，同时把分支状态保留在本地：
+之后每个 workspace 都可以使用共享脚本，同时把分支状态保留在本地：
 
 ```bash
 python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/init_branch_state.py \
   --workspace /path/to/workspace \
   --objective "<current task objective>" \
   --complexity medium
-
-python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/prepare_dispatch.py \
-  --workspace /path/to/workspace \
-  --name "<dispatch branch>" \
-  --scope "<bounded scope>" \
-  --expected-output "<expected result>" \
-  --capability scripts:"<tool>"
-
-python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/branchos_checkpoint.py \
-  --workspace /path/to/workspace \
-  --checkpoint task_start \
-  --emit-summary
 ```
+
+使用共享的 `prepare_dispatch.py`、`resolve_branch.py` 和 `branchos_checkpoint.py` 完成分发与闭环。完整流程见 [`docs/harness_integration.zh-CN.md`](docs/harness_integration.zh-CN.md)。
 
 workspace 状态保存在：
 

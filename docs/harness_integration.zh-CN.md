@@ -51,10 +51,13 @@ When BranchOS is active:
    `python3 skills/branchos/scripts/prepare_dispatch.py --name "<dispatch branch>" --scope "<bounded scope>" --expected-output "<expected result>" --capability scripts:"<tool>"`
    `python3 adapters/local/branchos_checkpoint.py --checkpoint pre_dispatch --emit-summary`
 6. Before merging branch outputs into the root synthesis, run:
+   `python3 skills/branchos/scripts/resolve_branch.py --branch-id B001 --status ready_to_merge --output "<branch result summary>"`
    `python3 adapters/local/branchos_checkpoint.py --checkpoint pre_merge --emit-summary`
 7. Before final response or harness postflight, run:
+   `python3 skills/branchos/scripts/resolve_branch.py --branch-id B001 --status merged --output "<merged branch result>"`
    `python3 adapters/local/branchos_checkpoint.py --checkpoint final_response --emit-summary --emit-delta`
-8. Report the branch map at task start and the branch delta at task end through your harness's normal logging or sync path.
+8. 把 BranchOS checkpoint error 作为 branch-layer open loop 报告；不要让它阻塞 harness 的 canonical postflight。
+9. Report the branch map at task start and the branch delta at task end through your harness's normal logging or sync path.
 
 Routing relationship:
 - BranchOS decides the task architecture and branch packets.
@@ -118,6 +121,11 @@ python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/init_bran
   --objective "<current task objective>" \
   --complexity medium
 
+python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/branchos_checkpoint.py \
+  --workspace /path/to/workspace \
+  --checkpoint task_start \
+  --emit-summary
+
 python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/prepare_dispatch.py \
   --workspace /path/to/workspace \
   --name "<dispatch branch>" \
@@ -127,8 +135,31 @@ python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/prepare_d
 
 python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/branchos_checkpoint.py \
   --workspace /path/to/workspace \
-  --checkpoint task_start \
+  --checkpoint pre_dispatch \
   --emit-summary
+
+python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/resolve_branch.py \
+  --workspace /path/to/workspace \
+  --branch-id B001 \
+  --status ready_to_merge \
+  --output "<branch result summary>"
+
+python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/branchos_checkpoint.py \
+  --workspace /path/to/workspace \
+  --checkpoint pre_merge \
+  --emit-summary
+
+python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/resolve_branch.py \
+  --workspace /path/to/workspace \
+  --branch-id B001 \
+  --status merged \
+  --output "<merged branch result>"
+
+python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/branchos_checkpoint.py \
+  --workspace /path/to/workspace \
+  --checkpoint final_response \
+  --emit-summary \
+  --emit-delta
 ```
 
 重要 runtime 规则：

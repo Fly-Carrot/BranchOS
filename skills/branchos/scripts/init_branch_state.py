@@ -21,11 +21,33 @@ def local_now() -> str:
 
 
 def stamp() -> str:
-    return datetime.now().astimezone().strftime("%Y%m%d-%H%M%S")
+    return datetime.now().astimezone().strftime("%Y%m%d-%H%M%S-%f")
 
 
 def default_task_id() -> str:
-    return f"BRANCHOS-{datetime.now().astimezone().strftime('%Y%m%d-%H%M%S')}"
+    return f"BRANCHOS-{datetime.now().astimezone().strftime('%Y%m%d-%H%M%S-%f')}"
+
+
+def normalize_text(value: Any) -> str:
+    return " ".join(str(value or "").split()).strip().lower()
+
+
+def state_root_objective(state: dict[str, Any] | None) -> str:
+    if not isinstance(state, dict):
+        return ""
+    root = state.get("root_task", {})
+    if not isinstance(root, dict):
+        return ""
+    return str(root.get("objective") or "")
+
+
+def state_root_task_id(state: dict[str, Any] | None, fallback: str) -> str:
+    if not isinstance(state, dict):
+        return fallback
+    root = state.get("root_task", {})
+    if not isinstance(root, dict):
+        return fallback
+    return str(root.get("id") or fallback)
 
 
 def soft_cap(complexity: str) -> int:
@@ -161,10 +183,10 @@ def validate_task_start(state_path: Path, validator: Path) -> tuple[bool, list[s
     return completed.returncode == 0, list(payload.get("errors", []))
 
 
-def backup_existing(path: Path) -> Path | None:
+def backup_existing(path: Path, reason: str = "invalid") -> Path | None:
     if not path.exists():
         return None
-    backup = path.with_name(f"{path.name}.invalid.{stamp()}")
+    backup = path.with_name(f"{path.name}.{reason}.{stamp()}")
     shutil.copy2(path, backup)
     return backup
 
@@ -188,9 +210,14 @@ def main() -> int:
     parser.add_argument("--events", type=Path)
     parser.add_argument("--validator", type=Path, default=script_dir / "validate_branch_state.py")
     parser.add_argument("--task-id", default=default_task_id())
-    parser.add_argument("--objective", default=DEFAULT_OBJECTIVE)
+    parser.add_argument("--objective")
     parser.add_argument("--complexity", choices=["simple", "medium", "complex"], default="medium")
     parser.add_argument("--force", action="store_true", help="Overwrite even when an existing valid state is present.")
+    parser.add_argument(
+        "--continue-existing",
+        action="store_true",
+        help="Reuse an existing valid state even when --objective names a different root task.",
+    )
     parser.add_argument(
         "--no-repair-invalid",
         action="store_true",
@@ -199,6 +226,8 @@ def main() -> int:
     args = parser.parse_args()
 
     workspace = args.workspace.expanduser().resolve()
+    objective = args.objective or DEFAULT_OBJECTIVE
+    objective_is_explicit = bool(args.objective and args.objective.strip())
     state_path = (args.state or workspace / ".agents" / "branchos" / "branch_state.yaml").expanduser()
     events_path = (args.events or workspace / ".agents" / "branchos" / "branch_events.ndjson").expanduser()
     state_path = state_path.resolve()
@@ -212,8 +241,24 @@ def main() -> int:
         existing_valid, validation_errors = validate_task_start(state_path, validator)
 
     if existing_valid and not args.force:
-        action = "existing_valid_state"
-        backup_path = None
+        existing_objective = normalize_text(state_root_objective(existing))
+        requested_objective = normalize_text(objective)
+        should_rotate = (
+            objective_is_explicit
+            and requested_objective
+            and existing_objective
+            and existing_objective != requested_objective
+            and not args.continue_existing
+        )
+        if should_rotate:
+            backup_path = backup_existing(state_path, reason="previous")
+            write_state(state_path, make_state(args.task_id, objective, args.complexity))
+            action = "rotated_previous_task_state"
+            existing, load_error = load_json(state_path)
+            existing_valid, validation_errors = validate_task_start(state_path, validator)
+        else:
+            action = "existing_valid_state"
+            backup_path = None
     else:
         if args.no_repair_invalid and not args.force:
             reason = load_error or "; ".join(validation_errors) or "invalid"
@@ -230,21 +275,24 @@ def main() -> int:
                 )
             )
             return 1
-        backup_path = backup_existing(state_path)
-        write_state(state_path, make_state(args.task_id, args.objective, args.complexity))
+        backup_path = backup_existing(state_path, reason="forced" if args.force else "invalid")
+        write_state(state_path, make_state(args.task_id, objective, args.complexity))
         action = "created_state" if load_error == "missing" else "repaired_or_replaced_state"
+        existing, load_error = load_json(state_path)
         existing_valid, validation_errors = validate_task_start(state_path, validator)
 
+    task_id = state_root_task_id(existing, args.task_id)
     event = {
         "timestamp": local_now(),
         "event": "init",
-        "task_id": args.task_id,
+        "task_id": task_id,
         "workspace": str(workspace),
         "status": "ok" if existing_valid else "error",
         "summary": f"BranchOS state initialization: {action}",
         "state": str(state_path),
         "backup": str(backup_path) if backup_path else "",
         "errors": validation_errors,
+        "objective": objective,
     }
     append_event(events_path, event)
     result = {
@@ -254,7 +302,8 @@ def main() -> int:
         "state": str(state_path),
         "events": str(events_path),
         "backup": str(backup_path) if backup_path else "",
-        "task_id": args.task_id,
+        "task_id": task_id,
+        "objective": state_root_objective(existing) or objective,
         "validation_errors": validation_errors,
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))

@@ -30,7 +30,7 @@ Do not use BranchOS for simple one-step answers, tiny edits, or tasks where a sh
 3. Let the agent choose the branch structure from the task shape. Do not force a fixed template.
 4. Separate standing branches from dynamic working branches.
 5. Before routing a skill, MCP tool, script, or subagent, create a working branch packet. Use `scripts/prepare_dispatch.py` when available.
-6. During work, update branch outputs, conflicts, and status.
+6. During work, update branch outputs, conflicts, and status. Use `scripts/resolve_branch.py` to mark branches as `ready_to_merge` before `pre_merge`, then `merged`, `blocked`, or `pruned` before final response.
 7. Before merging, check the branch's merge contract.
 8. Produce the final answer from merged branches and explicitly blocked branches only.
 
@@ -79,6 +79,14 @@ Do not repair a `pre_dispatch` failure by rerunning `init_branch_state.py --forc
 ```bash
 python3 scripts/prepare_dispatch.py --workspace <workspace> --name "<dispatch branch>" --scope "<bounded scope>" --expected-output "<expected result>" --capability scripts:"<tool or command>"
 ```
+
+If `final_response` reports unresolved working branches, do not use `init --force` to make the error disappear. Resolve each working branch:
+
+```bash
+python3 scripts/resolve_branch.py --workspace <workspace> --branch-id B001 --status merged --output "<branch result summary>"
+```
+
+A BranchOS checkpoint error is a planning-layer signal. It should be reported, but it must not prevent the host harness from running its canonical postflight or memory sync.
 
 ## References
 

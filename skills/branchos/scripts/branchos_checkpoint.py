@@ -40,6 +40,15 @@ def dispatch_hint(workspace: Path, prepare_script: Path) -> str:
     )
 
 
+def resolution_hint(workspace: Path, resolve_script: Path) -> str:
+    return (
+        "final_response requires working branches to be merged, blocked, or pruned. "
+        "Resolve each open branch before final_response, e.g.: "
+        f"python3 {shlex.quote(str(resolve_script))} --workspace {shlex.quote(str(workspace))} "
+        '--branch-id B001 --status merged --output "<branch result summary>"'
+    )
+
+
 def local_now() -> str:
     return datetime.now().astimezone().replace(microsecond=0).isoformat()
 
@@ -88,6 +97,11 @@ def needs_dispatch_hint(validation: dict[str, Any]) -> bool:
         ".branch_packet missing",
     )
     return any(marker in errors for marker in markers)
+
+
+def needs_resolution_hint(validation: dict[str, Any]) -> bool:
+    errors = " ".join(str(error) for error in validation.get("errors", []))
+    return "final_response has unresolved working branches" in errors
 
 
 def append_event(path: Path, event: dict[str, Any]) -> None:
@@ -203,6 +217,7 @@ def main() -> int:
 
     init_script = script_dir / "init_branch_state.py"
     prepare_script = script_dir / "prepare_dispatch.py"
+    resolve_script = script_dir / "resolve_branch.py"
     state = load_state(state_path, workspace, init_script)
     task_id = str(state.get("root_task", {}).get("id") or "session")
     command = [
@@ -238,6 +253,8 @@ def main() -> int:
         result["initialization_hint"] = initialization_hint(workspace, init_script)
     if needs_dispatch_hint(validation):
         result["dispatch_hint"] = dispatch_hint(workspace, prepare_script)
+    if needs_resolution_hint(validation):
+        result["resolution_hint"] = resolution_hint(workspace, resolve_script)
     if args.emit_summary:
         result["branchos_summary"] = checkpoint_summary(state, args.checkpoint)
     if args.emit_delta:

@@ -96,6 +96,7 @@ def render_global_rule(global_root: Path) -> str:
     skill_root = global_root / "skills" / "generated" / "branchos"
     init = skill_root / "scripts" / "init_branch_state.py"
     prepare = skill_root / "scripts" / "prepare_dispatch.py"
+    resolve = skill_root / "scripts" / "resolve_branch.py"
     checkpoint = skill_root / "scripts" / "branchos_checkpoint.py"
     return "\n".join(
         [
@@ -106,12 +107,16 @@ def render_global_rule(global_root: Path) -> str:
             f"- Shared BranchOS skill source: `{skill_root}`",
             f"- Shared BranchOS init script: `{init}`",
             f"- Shared BranchOS prepare-dispatch script: `{prepare}`",
+            f"- Shared BranchOS resolve-branch script: `{resolve}`",
             f"- Shared BranchOS checkpoint script: `{checkpoint}`",
             "- Workspace-local state remains under `<workspace>/.agents/branchos/branch_state.yaml` and `<workspace>/.agents/branchos/branch_events.ndjson`.",
             "- Do not claim BranchOS is unavailable merely because the current workspace lacks `skills/branchos` or `.agents/branchos/branchos_checkpoint.py`; check the shared skill source first.",
             "- If the shared skill source exists, load BranchOS from Global Agent Fabric and create/load only the workspace-local branch state.",
+            "- If `init_branch_state.py` receives a new explicit `--objective` that differs from the existing root task, it archives the previous state and starts a fresh task unless `--continue-existing` is passed.",
             "- Never initialize BranchOS with `touch` or `echo '{}'`; missing, empty, or invalid state must be initialized or repaired with the shared init script.",
             "- Never repair a `pre_dispatch` failure with `init --force`. `pre_dispatch` needs a working branch packet; create or update it with the shared prepare-dispatch script.",
+            "- Before `pre_merge`, resolve merge-ready working branches with the shared resolve-branch script as `ready_to_merge`; before `final_response`, resolve open working branches as `merged`, `blocked`, or `pruned`.",
+            "- A BranchOS `final_response` error should be reported as `[BRANCHOS_OPEN]` or `[BRANCHOS_ERROR]`, but it must not prevent canonical `postflight_sync.py` from running.",
             "- Do not run `preflight_check.py` or `sync_all.py` per virtual branch.",
             "- Do not emit the full `route -> plan -> review -> dispatch -> execute -> report` lifecycle per virtual branch. The root task gets one canonical lifecycle; BranchOS maintains branch state inside it.",
             "",
@@ -120,8 +125,8 @@ def render_global_rule(global_root: Path) -> str:
             f"2. Create or repair `<workspace>/.agents/branchos/branch_state.yaml`: `python3 {init} --workspace <workspace> --objective \"<current task objective>\" --complexity medium`.",
             f"3. Run task-start checkpoint: `python3 {checkpoint} --workspace <workspace> --checkpoint task_start --emit-summary`.",
             f"4. Before specialized skill/MCP/script/Maestro/subagent dispatch, create a working branch packet: `python3 {prepare} --workspace <workspace> --name \"<dispatch branch>\" --scope \"<bounded scope>\" --expected-output \"<expected result>\" --capability scripts:\"<tool or command>\"`, then run: `python3 {checkpoint} --workspace <workspace> --checkpoint pre_dispatch --emit-summary`.",
-            f"5. Before merging branch outputs into root synthesis, run: `python3 {checkpoint} --workspace <workspace> --checkpoint pre_merge --emit-summary`.",
-            f"6. Before final response and canonical postflight, run: `python3 {checkpoint} --workspace <workspace> --checkpoint final_response --emit-summary --emit-delta`.",
+            f"5. Before merging branch outputs into root synthesis, mark merge-ready branches: `python3 {resolve} --workspace <workspace> --branch-id <B###> --status ready_to_merge --output \"<branch result>\"`, then run: `python3 {checkpoint} --workspace <workspace> --checkpoint pre_merge --emit-summary`.",
+            f"6. Before final response and canonical postflight, resolve each open working branch: `python3 {resolve} --workspace <workspace> --branch-id <B###> --status <merged|blocked|pruned> --output \"<branch result>\"`, then run: `python3 {checkpoint} --workspace <workspace> --checkpoint final_response --emit-summary --emit-delta`.",
             "7. If neither shared nor local BranchOS exists, say so explicitly and fall back to the normal shared-fabric workflow.",
             "",
             RULE_END,

@@ -30,7 +30,7 @@ BranchOS 是一个 meta-planning skill。它把复杂用户目标转化为虚拟
 3. 让 agent 根据任务形状自行决定分支结构，不强制固定模板。
 4. 区分 standing branches 和 dynamic working branches。
 5. 在路由 skill、MCP tool、script 或 subagent 之前创建 working branch packet。可用时使用 `scripts/prepare_dispatch.py`。
-6. 工作过程中持续更新 branch outputs、conflicts 和 status。
+6. 工作过程中持续更新 branch outputs、conflicts 和 status。使用 `scripts/resolve_branch.py` 在 `pre_merge` 前标记为 `ready_to_merge`，最终回复前标记为 `merged`、`blocked` 或 `pruned`。
 7. 合并前检查对应分支的 merge contract。
 8. 最终答案只能来自 merged branches 和明确 blocked branches。
 
@@ -79,6 +79,14 @@ standing branches 不计入动态预算。dynamic working branches 的软上限�
 ```bash
 python3 scripts/prepare_dispatch.py --workspace <workspace> --name "<dispatch branch>" --scope "<bounded scope>" --expected-output "<expected result>" --capability scripts:"<tool or command>"
 ```
+
+如果 `final_response` 报告 unresolved working branches，不要用 `init --force` 抹掉错误。应该收束每个 working branch：
+
+```bash
+python3 scripts/resolve_branch.py --workspace <workspace> --branch-id B001 --status merged --output "<branch result summary>"
+```
+
+BranchOS checkpoint error 是规划层信号，应该报告出来，但不应该阻止宿主 harness 继续运行 canonical postflight 或 memory sync。
 
 ## References
 
