@@ -1,0 +1,9 @@
+.DS_Store
+.agents/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.log
+llm-wiki.md

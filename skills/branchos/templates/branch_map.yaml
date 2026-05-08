@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "root_task": {
+    "id": "TASK_ID",
+    "objective": "Describe the root objective.",
+    "complexity": "medium",
+    "current_phase": "route",
+    "locked_constraints": [],
+    "success_criteria": []
+  },
+  "standing_branches": [],
+  "working_branches": [],
+  "merge_queue": [],
+  "pruned": [],
+  "branch_budget": {
+    "standing_count": 0,
+    "active_working_count": 0,
+    "soft_cap": 8,
+    "over_budget_reason": ""
+  }
+}

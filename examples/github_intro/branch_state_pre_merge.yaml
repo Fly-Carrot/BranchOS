@@ -1,0 +1,227 @@
+{
+  "schema_version": 1,
+  "root_task": {
+    "id": "bird-acoustic-pipeline-demo",
+    "objective": "Design a research-grade bird-acoustic analysis pipeline.",
+    "complexity": "complex",
+    "current_phase": "review",
+    "locked_constraints": [
+      "Raw field recordings are immutable.",
+      "Outputs must be reproducible.",
+      "Ecological interpretation must be separated from measured model outputs."
+    ],
+    "success_criteria": [
+      "Major modules are identified.",
+      "Data flow is explicit.",
+      "Validation hooks are named.",
+      "Final synthesis is based on merged branches."
+    ]
+  },
+  "standing_branches": [
+    {
+      "id": "S001",
+      "name": "Intent and Constraints",
+      "type": "standing",
+      "status": "active",
+      "parent": "ROOT",
+      "depends_on": [],
+      "purpose": "Keep user goals and locked constraints visible throughout the task.",
+      "inputs": ["Root user objective"],
+      "allowed_capabilities": {"skills": [], "mcps": [], "subagents": [], "scripts": []},
+      "deliverables": ["Locked constraints list"],
+      "merge_contract": {
+        "merge_into": "ROOT",
+        "must_satisfy": ["Constraints are not overridden by working branches."],
+        "must_include": ["Constraint summary"],
+        "conflict_check": "Check branch outputs against locked constraints.",
+        "new_branch_triggers": ["A new user constraint changes branch assumptions."]
+      },
+      "outputs": ["Raw-audio immutability and reproducible outputs are locked."],
+      "conflicts": [],
+      "last_updated": "2026-05-08T00:00:00Z"
+    },
+    {
+      "id": "S002",
+      "name": "Architecture Boundary",
+      "type": "standing",
+      "status": "active",
+      "parent": "ROOT",
+      "depends_on": ["S001"],
+      "purpose": "Define durable module boundaries and data flow.",
+      "inputs": ["Root task", "Locked constraints"],
+      "allowed_capabilities": {"skills": ["architecture"], "mcps": [], "subagents": [], "scripts": []},
+      "deliverables": ["Module boundary map"],
+      "merge_contract": {
+        "merge_into": "ROOT",
+        "must_satisfy": ["Major modules and interfaces are named."],
+        "must_include": ["Module map", "Data flow"],
+        "conflict_check": "Check architecture against raw-data immutability.",
+        "new_branch_triggers": ["A module has unclear ownership."]
+      },
+      "branch_packet": {
+        "scope": "Define pipeline module boundaries and data flow.",
+        "non_goals": ["Do not implement code.", "Do not choose vendor infrastructure."],
+        "expected_output": "Architecture module map with validation hooks.",
+        "return_format": "Markdown sections."
+      },
+      "outputs": ["Accepted module map: ingest -> preprocess -> model -> indicators -> validation -> report."],
+      "conflicts": [],
+      "last_updated": "2026-05-08T00:00:00Z"
+    },
+    {
+      "id": "S003",
+      "name": "Verification",
+      "type": "standing",
+      "status": "active",
+      "parent": "ROOT",
+      "depends_on": ["S001"],
+      "purpose": "Protect validation, reproducibility, and merge safety.",
+      "inputs": ["Root task", "Working branch outputs"],
+      "allowed_capabilities": {"skills": ["testing-patterns"], "mcps": [], "subagents": [], "scripts": []},
+      "deliverables": ["Validation criteria"],
+      "merge_contract": {
+        "merge_into": "ROOT",
+        "must_satisfy": ["Validation hooks exist for model and report outputs."],
+        "must_include": ["Quality gates"],
+        "conflict_check": "Check measured outputs versus interpretation.",
+        "new_branch_triggers": ["A branch lacks testability."]
+      },
+      "branch_packet": {
+        "scope": "Review validation and reproducibility requirements.",
+        "non_goals": ["Do not design the whole pipeline."],
+        "expected_output": "Quality gates and merge-safety notes.",
+        "return_format": "Checklist."
+      },
+      "outputs": ["Accepted quality gates: manifest validation, model-version tracking, manual audit sample, report reproducibility."],
+      "conflicts": [],
+      "last_updated": "2026-05-08T00:00:00Z"
+    }
+  ],
+  "working_branches": [
+    {
+      "id": "B001",
+      "name": "Data Ingestion",
+      "type": "working",
+      "status": "ready_to_merge",
+      "parent": "ROOT",
+      "depends_on": ["S001"],
+      "purpose": "Design immutable raw-audio intake and metadata normalization.",
+      "inputs": ["Raw recordings", "Field metadata"],
+      "allowed_capabilities": {"skills": ["backend-architect"], "mcps": [], "subagents": [], "scripts": []},
+      "deliverables": ["Ingestion contract", "Manifest schema"],
+      "merge_contract": {
+        "merge_into": "ROOT",
+        "must_satisfy": ["Raw files remain read-only.", "Metadata traceability is defined."],
+        "must_include": ["Manifest fields", "Failure handling"],
+        "conflict_check": "Check no branch writes over raw recordings.",
+        "new_branch_triggers": ["Metadata is insufficient for traceability."]
+      },
+      "branch_packet": {
+        "scope": "Design data intake and manifest generation.",
+        "non_goals": ["Do not implement storage code."],
+        "expected_output": "Ingestion contract and manifest fields.",
+        "return_format": "Markdown table plus notes."
+      },
+      "outputs": ["Manifest fields accepted: file_id, path, recorder, site, start_time, duration, checksum, config_id."],
+      "conflicts": [],
+      "last_updated": "2026-05-08T00:00:00Z"
+    },
+    {
+      "id": "B002",
+      "name": "Model Strategy",
+      "type": "working",
+      "status": "ready_to_merge",
+      "parent": "ROOT",
+      "depends_on": ["B001"],
+      "purpose": "Choose a pluggable detection/classification architecture.",
+      "inputs": ["Audio chunks", "Model version metadata"],
+      "allowed_capabilities": {"skills": ["architecture"], "mcps": [], "subagents": [], "scripts": []},
+      "deliverables": ["Model interface", "Confidence output contract"],
+      "merge_contract": {
+        "merge_into": "ROOT",
+        "must_satisfy": ["Model output is versioned.", "Confidence and uncertainty are preserved."],
+        "must_include": ["Model interface", "Audit hooks"],
+        "conflict_check": "Check model output is not treated as ecological truth directly.",
+        "new_branch_triggers": ["Training data assumptions are missing."]
+      },
+      "branch_packet": {
+        "scope": "Design pluggable model layer.",
+        "non_goals": ["Do not train a model."],
+        "expected_output": "Model interface and output contract.",
+        "return_format": "Interface bullets."
+      },
+      "outputs": ["Model output contract accepted: clip_id, species_label, confidence, time_range, model_id, model_version."],
+      "conflicts": [],
+      "last_updated": "2026-05-08T00:00:00Z"
+    },
+    {
+      "id": "B003",
+      "name": "Ecological Indicators",
+      "type": "working",
+      "status": "ready_to_merge",
+      "parent": "ROOT",
+      "depends_on": ["B002", "S003"],
+      "purpose": "Define ecological indicator outputs and interpretation boundaries.",
+      "inputs": ["Model detections", "Site metadata", "Time windows"],
+      "allowed_capabilities": {"skills": ["nature-data"], "mcps": [], "subagents": [], "scripts": []},
+      "deliverables": ["Indicator contract", "Interpretation caveats"],
+      "merge_contract": {
+        "merge_into": "ROOT",
+        "must_satisfy": ["Measured outputs are separated from ecological interpretation."],
+        "must_include": ["Indicator list", "Uncertainty handling"],
+        "conflict_check": "Check indicators are supported by model outputs and metadata.",
+        "new_branch_triggers": ["An indicator requires unavailable metadata."]
+      },
+      "branch_packet": {
+        "scope": "Define ecological indicators and interpretation rules.",
+        "non_goals": ["Do not claim ecological conclusions without validation."],
+        "expected_output": "Indicator contract with caveats.",
+        "return_format": "Indicator table plus caveats."
+      },
+      "outputs": ["Indicators accepted: call activity, occupancy proxy, diel rhythm, acoustic diversity, uncertainty intervals."],
+      "conflicts": [],
+      "last_updated": "2026-05-08T00:00:00Z"
+    },
+    {
+      "id": "B004",
+      "name": "Reporting",
+      "type": "working",
+      "status": "ready_to_merge",
+      "parent": "ROOT",
+      "depends_on": ["B001", "B002", "B003"],
+      "purpose": "Design the reproducible report and handoff surface.",
+      "inputs": ["Manifest", "Model outputs", "Indicator summaries"],
+      "allowed_capabilities": {"skills": ["docs-architect"], "mcps": [], "subagents": [], "scripts": []},
+      "deliverables": ["Report outline", "Reproducibility requirements"],
+      "merge_contract": {
+        "merge_into": "ROOT",
+        "must_satisfy": ["Report can be regenerated from artifacts and config."],
+        "must_include": ["Report sections", "Artifact references"],
+        "conflict_check": "Check report does not hide uncertainty or validation failures.",
+        "new_branch_triggers": ["A report claim lacks traceable evidence."]
+      },
+      "branch_packet": {
+        "scope": "Design reproducible reporting surface.",
+        "non_goals": ["Do not write the final scientific manuscript."],
+        "expected_output": "Report outline and reproducibility checklist.",
+        "return_format": "Markdown outline."
+      },
+      "outputs": ["Report surface accepted: data manifest, model summary, indicators, validation audit, limitations, reproducibility appendix."],
+      "conflicts": [],
+      "last_updated": "2026-05-08T00:00:00Z"
+    }
+  ],
+  "merge_queue": [
+    {"branch_id": "B001", "target": "ROOT", "checks": ["Raw files immutable", "Manifest traceable"]},
+    {"branch_id": "B002", "target": "ROOT", "checks": ["Model output versioned", "Uncertainty preserved"]},
+    {"branch_id": "B003", "target": "ROOT", "checks": ["Interpretation separated", "Indicators supported"]},
+    {"branch_id": "B004", "target": "ROOT", "checks": ["Report reproducible", "Evidence traceable"]}
+  ],
+  "pruned": [],
+  "branch_budget": {
+    "standing_count": 3,
+    "active_working_count": 4,
+    "soft_cap": 14,
+    "over_budget_reason": ""
+  }
+}

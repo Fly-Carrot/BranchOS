@@ -1,0 +1,3 @@
+display_name: BranchOS
+short_description: Architecture-first virtual task branching for complex agent work.
+default_prompt: Use BranchOS to create and maintain a virtual branch graph, route work through branch packets, validate merge contracts, and synthesize only merged or explicitly blocked branch outputs.
