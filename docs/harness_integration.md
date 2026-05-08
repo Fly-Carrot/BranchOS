@@ -82,6 +82,49 @@ The important boundary is that BranchOS does not replace boot or postflight. It 
 - End output can include `[BRANCHOS_REPORT]`, created branches, updated branches, merged branches, pruned branches, blocked branches, and artifacts.
 - Postflight can attach BranchOS artifacts through the harness's supported sync mechanism.
 
+## Global Agent Fabric Mode
+
+In a shared-fabric architecture, install BranchOS once into the shared skill root instead of copying it into every project:
+
+```bash
+python3 adapters/shared_fabric/install_branchos_shared_fabric.py \
+  --global-root /path/to/global-agent-fabric \
+  --update-global-rule \
+  --export-antigravity
+```
+
+The installed skill lives at:
+
+```text
+<global-agent-fabric>/skills/generated/branchos
+```
+
+The workspace keeps only task-local state:
+
+```text
+<workspace>/.agents/branchos/branch_state.yaml
+<workspace>/.agents/branchos/branch_events.ndjson
+```
+
+Use the shared checkpoint script from any workspace:
+
+```bash
+python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/branchos_checkpoint.py \
+  --workspace /path/to/workspace \
+  --checkpoint task_start \
+  --emit-summary
+```
+
+Important runtime rule:
+
+```text
+Do not declare BranchOS unavailable just because the current workspace lacks `skills/branchos`.
+First check whether the harness has a shared BranchOS skill, such as:
+`<global-agent-fabric>/skills/generated/branchos`.
+```
+
+This is the recommended mode for multi-workspace systems: BranchOS is globally installed, while branch state remains project-local.
+
 ## Output Contract
 
 At task start, the harness can surface:

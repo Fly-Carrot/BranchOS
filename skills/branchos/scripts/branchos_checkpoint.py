@@ -1,0 +1,194 @@
+#!/usr/bin/env python3
+"""BranchOS checkpoint adapter for local or shared-skill installs.
+
+This script keeps BranchOS runtime state project-local while allowing the
+BranchOS skill itself to live in a shared skill root such as Global Agent
+Fabric's `skills/generated/branchos` directory.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+
+CHECKPOINTS = {"task_start", "pre_dispatch", "pre_merge", "final_response"}
+OPEN_STATUSES = {"proposed", "active", "blocked", "reviewing", "ready_to_merge", "hotfix"}
+
+
+def local_now() -> str:
+    return datetime.now().astimezone().replace(microsecond=0).isoformat()
+
+
+def load_state(path: Path) -> dict[str, Any]:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise SystemExit(
+            f"BranchOS state file not found: {path}. "
+            "Create it from the current task branch graph before running this checkpoint."
+        ) from exc
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"Cannot parse state file as JSON-compatible YAML: {path}: {exc}") from exc
+    if not isinstance(data, dict):
+        raise SystemExit(f"State file must contain an object: {path}")
+    return data
+
+
+def append_event(path: Path, event: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")
+
+
+def all_branches(state: dict[str, Any]) -> list[dict[str, Any]]:
+    branches: list[dict[str, Any]] = []
+    for key in ("standing_branches", "working_branches"):
+        value = state.get(key, [])
+        if isinstance(value, list):
+            branches.extend(branch for branch in value if isinstance(branch, dict))
+    return branches
+
+
+def branch_label(branch: dict[str, Any]) -> str:
+    branch_id = str(branch.get("id") or "UNKNOWN")
+    name = str(branch.get("name") or "Unnamed")
+    status = str(branch.get("status") or "unknown")
+    return f"{branch_id} {name} ({status})"
+
+
+def checkpoint_summary(state: dict[str, Any], checkpoint: str) -> dict[str, Any]:
+    branches = all_branches(state)
+    standing = [branch for branch in state.get("standing_branches", []) if isinstance(branch, dict)]
+    working = [branch for branch in state.get("working_branches", []) if isinstance(branch, dict)]
+    status_counts: dict[str, int] = {}
+    for branch in branches:
+        status = str(branch.get("status") or "unknown")
+        status_counts[status] = status_counts.get(status, 0) + 1
+
+    return {
+        "checkpoint": checkpoint,
+        "root_task": {
+            "id": state.get("root_task", {}).get("id"),
+            "objective": state.get("root_task", {}).get("objective"),
+            "current_phase": state.get("root_task", {}).get("current_phase"),
+            "complexity": state.get("root_task", {}).get("complexity"),
+        },
+        "branch_counts": {
+            "standing": len(standing),
+            "working": len(working),
+            "total": len(branches),
+            "by_status": status_counts,
+        },
+        "standing_branches": [branch_label(branch) for branch in standing],
+        "working_branches": [branch_label(branch) for branch in working],
+        "merge_queue": state.get("merge_queue", []),
+        "pruned": state.get("pruned", []),
+    }
+
+
+def recent_events(path: Path, limit: int = 8) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    events: list[dict[str, Any]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(event, dict):
+            events.append(event)
+    return events[-limit:]
+
+
+def checkpoint_delta(state: dict[str, Any], events_path: Path) -> dict[str, Any]:
+    branches = all_branches(state)
+    open_branches = [
+        branch_label(branch)
+        for branch in branches
+        if str(branch.get("status") or "unknown") in OPEN_STATUSES
+    ]
+    merged_branches = [
+        branch_label(branch)
+        for branch in branches
+        if str(branch.get("status") or "unknown") == "merged"
+    ]
+    blocked_branches = [
+        branch_label(branch)
+        for branch in branches
+        if str(branch.get("status") or "unknown") == "blocked"
+    ]
+    return {
+        "merged_branches": merged_branches,
+        "open_branches": open_branches,
+        "blocked_branches": blocked_branches,
+        "recent_events": recent_events(events_path),
+    }
+
+
+def main() -> int:
+    script_dir = Path(__file__).resolve().parent
+    default_workspace = Path.cwd()
+    parser = argparse.ArgumentParser(description="Run a BranchOS checkpoint.")
+    parser.add_argument("--checkpoint", required=True, choices=sorted(CHECKPOINTS))
+    parser.add_argument("--workspace", type=Path, default=default_workspace)
+    parser.add_argument("--state", type=Path)
+    parser.add_argument("--events", type=Path)
+    parser.add_argument("--validator", type=Path, default=script_dir / "validate_branch_state.py")
+    parser.add_argument("--summary", default="")
+    parser.add_argument("--emit-summary", action="store_true", help="Include a compact branch map summary in the JSON output.")
+    parser.add_argument("--emit-delta", action="store_true", help="Include a compact current-state delta and recent branch events.")
+    args = parser.parse_args()
+
+    workspace = args.workspace.expanduser().resolve()
+    state_path = args.state or workspace / ".agents" / "branchos" / "branch_state.yaml"
+    events_path = args.events or workspace / ".agents" / "branchos" / "branch_events.ndjson"
+
+    state = load_state(state_path)
+    task_id = str(state.get("root_task", {}).get("id") or "session")
+    command = [
+        sys.executable,
+        str(args.validator),
+        str(state_path),
+        "--checkpoint",
+        args.checkpoint,
+    ]
+    completed = subprocess.run(command, text=True, capture_output=True)
+    try:
+        validation: dict[str, Any] = json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        validation = {
+            "status": "error",
+            "errors": ["validator did not return JSON"],
+            "stdout": completed.stdout,
+            "stderr": completed.stderr,
+        }
+    event = {
+        "timestamp": local_now(),
+        "event": args.checkpoint,
+        "task_id": task_id,
+        "workspace": str(workspace),
+        "status": validation.get("status", "error"),
+        "summary": args.summary or f"BranchOS checkpoint {args.checkpoint}",
+        "errors": validation.get("errors", []),
+        "warnings": validation.get("warnings", []),
+    }
+    append_event(events_path, event)
+    result = {"event_written": str(events_path), **validation}
+    if args.emit_summary:
+        result["branchos_summary"] = checkpoint_summary(state, args.checkpoint)
+    if args.emit_delta:
+        result["branchos_delta"] = checkpoint_delta(state, events_path)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return completed.returncode
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

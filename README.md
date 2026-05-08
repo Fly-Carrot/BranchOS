@@ -31,6 +31,7 @@ Activation:
 - After the harness has completed its normal boot and context loading, evaluate whether the task is medium or complex.
 - If BranchOS is active, create or load `.agents/branchos/branch_state.yaml`.
 - Run one root task lifecycle only. Do not run boot, postflight, or the full lifecycle per virtual branch.
+- If your harness has a shared skill root, check that before declaring BranchOS unavailable in a workspace.
 
 Checkpoints:
 - At task start, run:
@@ -50,6 +51,39 @@ Routing:
 ```
 
 Harness-specific placement notes: [`docs/harness_integration.md`](docs/harness_integration.md)
+
+## Shared Fabric Install
+
+For Global Agent Fabric-style harnesses, install BranchOS once into the shared skill root:
+
+```bash
+python3 adapters/shared_fabric/install_branchos_shared_fabric.py \
+  --global-root /path/to/global-agent-fabric \
+  --update-global-rule \
+  --export-antigravity
+```
+
+After that, workspaces do not need local copies of `skills/branchos`. The shared skill lives at:
+
+```text
+<global-agent-fabric>/skills/generated/branchos
+```
+
+Each workspace still keeps its own task state under:
+
+```text
+<workspace>/.agents/branchos/branch_state.yaml
+<workspace>/.agents/branchos/branch_events.ndjson
+```
+
+The shared checkpoint command becomes:
+
+```bash
+python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/branchos_checkpoint.py \
+  --workspace /path/to/workspace \
+  --checkpoint task_start \
+  --emit-summary
+```
 
 ## Why BranchOS Exists
 
@@ -228,10 +262,14 @@ skills/branchos/
   references/                      # progressive-disclosure protocols
   templates/                       # branch map, branch packet, merge report
   scripts/validate_branch_state.py # stdlib validator
+  scripts/branchos_checkpoint.py   # shared/local checkpoint adapter
 
 adapters/local/
   branchos_checkpoint.py           # local checkpoint adapter
   integration_adapter.md           # runtime placement notes
+
+adapters/shared_fabric/
+  install_branchos_shared_fabric.py # install once into a shared fabric skill root
 
 examples/github_intro/
   branch_state_start.yaml          # active branch graph
