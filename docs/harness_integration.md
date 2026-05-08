@@ -48,6 +48,7 @@ When BranchOS is active:
    `python3 adapters/local/branchos_checkpoint.py --checkpoint task_start --emit-summary`
 4. During planning, let the agent create standing branches and dynamic working branches according to task complexity.
 5. Before calling a specialized skill, MCP tool, orchestration layer, script, or subagent, create a branch packet and run:
+   `python3 skills/branchos/scripts/prepare_dispatch.py --name "<dispatch branch>" --scope "<bounded scope>" --expected-output "<expected result>" --capability scripts:"<tool>"`
    `python3 adapters/local/branchos_checkpoint.py --checkpoint pre_dispatch --emit-summary`
 6. Before merging branch outputs into the root synthesis, run:
    `python3 adapters/local/branchos_checkpoint.py --checkpoint pre_merge --emit-summary`
@@ -116,6 +117,13 @@ python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/init_bran
   --workspace /path/to/workspace \
   --objective "<current task objective>" \
   --complexity medium
+
+python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/prepare_dispatch.py \
+  --workspace /path/to/workspace \
+  --name "<dispatch branch>" \
+  --scope "<bounded scope>" \
+  --expected-output "<expected result>" \
+  --capability scripts:"<tool>"
 
 python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/branchos_checkpoint.py \
   --workspace /path/to/workspace \

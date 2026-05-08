@@ -29,7 +29,7 @@ Do not use BranchOS for simple one-step answers, tiny edits, or tasks where a sh
 2. Decide whether BranchOS is warranted; if yes, initialize or load a valid branch state.
 3. Let the agent choose the branch structure from the task shape. Do not force a fixed template.
 4. Separate standing branches from dynamic working branches.
-5. Before routing a skill, MCP tool, or subagent, create a branch packet.
+5. Before routing a skill, MCP tool, script, or subagent, create a working branch packet. Use `scripts/prepare_dispatch.py` when available.
 6. During work, update branch outputs, conflicts, and status.
 7. Before merging, check the branch's merge contract.
 8. Produce the final answer from merged branches and explicitly blocked branches only.
@@ -73,6 +73,12 @@ Use these checkpoints when the runtime or project provides a hook/adapter:
 - `pre_dispatch`: ensure each specialized capability call has a branch packet.
 - `pre_merge`: validate the merge contract.
 - `final_response`: ensure unresolved branches are merged, pruned, or reported as blocked/open loops.
+
+Do not repair a `pre_dispatch` failure by rerunning `init_branch_state.py --force`; that resets the branch graph. Create or update the working branch packet instead:
+
+```bash
+python3 scripts/prepare_dispatch.py --workspace <workspace> --name "<dispatch branch>" --scope "<bounded scope>" --expected-output "<expected result>" --capability scripts:"<tool or command>"
+```
 
 ## References
 

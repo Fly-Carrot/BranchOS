@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/python-stdlib%20only-blue)](skills/branchos/scripts/validate_branch_state.py)
 [![Agent Skill](https://img.shields.io/badge/agent-skill-purple)](skills/branchos/SKILL.md)
 [![Harness](https://img.shields.io/badge/harness-agnostic-teal)](docs/harness_integration.zh-CN.md)
-[![Status](https://img.shields.io/badge/status-v0.3%20init--hardened-lightgrey)](#设计边界)
+[![Status](https://img.shields.io/badge/status-v0.4%20dispatch--ready-lightgrey)](#设计边界)
 
 **面向 agent 工作的架构优先虚拟任务分支系统。**
 
@@ -32,6 +32,7 @@ Run one root task lifecycle only. Do not run boot, postflight, or the full lifec
 If the harness has a shared skill root, check that before declaring BranchOS unavailable.
 
 Before specialist dispatch, create a branch packet.
+Do not use init --force to fix pre_dispatch; prepare a working branch packet instead.
 Before root synthesis, validate merge contracts.
 Final synthesis should use merged branch outputs only.
 ```
@@ -41,6 +42,7 @@ Final synthesis should use merged branch outputs only.
 ```bash
 python3 skills/branchos/scripts/init_branch_state.py --objective "<current task objective>" --complexity medium
 python3 adapters/local/branchos_checkpoint.py --checkpoint task_start --emit-summary
+python3 skills/branchos/scripts/prepare_dispatch.py --name "<dispatch branch>" --scope "<bounded scope>" --expected-output "<expected result>" --capability scripts:"<tool>"
 python3 adapters/local/branchos_checkpoint.py --checkpoint pre_dispatch --emit-summary
 python3 adapters/local/branchos_checkpoint.py --checkpoint pre_merge --emit-summary
 python3 adapters/local/branchos_checkpoint.py --checkpoint final_response --emit-summary --emit-delta
@@ -64,6 +66,13 @@ python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/init_bran
   --workspace /path/to/workspace \
   --objective "<current task objective>" \
   --complexity medium
+
+python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/prepare_dispatch.py \
+  --workspace /path/to/workspace \
+  --name "<dispatch branch>" \
+  --scope "<bounded scope>" \
+  --expected-output "<expected result>" \
+  --capability scripts:"<tool>"
 
 python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/branchos_checkpoint.py \
   --workspace /path/to/workspace \

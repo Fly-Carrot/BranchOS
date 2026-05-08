@@ -30,6 +30,16 @@ def initialization_hint(workspace: Path, init_script: Path) -> str:
     )
 
 
+def dispatch_hint(workspace: Path, prepare_script: Path) -> str:
+    return (
+        "pre_dispatch needs a working branch with allowed_capabilities and branch_packet. "
+        "Do not fix this with init --force. Run: "
+        f"python3 {shlex.quote(str(prepare_script))} --workspace {shlex.quote(str(workspace))} "
+        '--name "<dispatch branch name>" --scope "<bounded dispatch scope>" '
+        '--expected-output "<expected result>" --capability scripts:"<tool or command>"'
+    )
+
+
 def local_now() -> str:
     return datetime.now().astimezone().replace(microsecond=0).isoformat()
 
@@ -66,6 +76,16 @@ def needs_initialization_hint(validation: dict[str, Any]) -> bool:
         "root_task must be an object",
         "task_start requires at least one",
         "branch_budget must be an object",
+    )
+    return any(marker in errors for marker in markers)
+
+
+def needs_dispatch_hint(validation: dict[str, Any]) -> bool:
+    errors = " ".join(str(error) for error in validation.get("errors", []))
+    markers = (
+        "pre_dispatch requires an active/reviewing branch with allowed_capabilities",
+        "requires branch_packet before dispatch",
+        ".branch_packet missing",
     )
     return any(marker in errors for marker in markers)
 
@@ -182,6 +202,7 @@ def main() -> int:
     events_path = args.events or workspace / ".agents" / "branchos" / "branch_events.ndjson"
 
     init_script = script_dir / "init_branch_state.py"
+    prepare_script = script_dir / "prepare_dispatch.py"
     state = load_state(state_path, workspace, init_script)
     task_id = str(state.get("root_task", {}).get("id") or "session")
     command = [
@@ -215,6 +236,8 @@ def main() -> int:
     result = {"event_written": str(events_path), **validation}
     if needs_initialization_hint(validation):
         result["initialization_hint"] = initialization_hint(workspace, init_script)
+    if needs_dispatch_hint(validation):
+        result["dispatch_hint"] = dispatch_hint(workspace, prepare_script)
     if args.emit_summary:
         result["branchos_summary"] = checkpoint_summary(state, args.checkpoint)
     if args.emit_delta:

@@ -29,7 +29,7 @@ BranchOS 是一个 meta-planning skill。它把复杂用户目标转化为虚拟
 2. 判断是否需要 BranchOS；如果需要，初始化或加载合法的 branch state。
 3. 让 agent 根据任务形状自行决定分支结构，不强制固定模板。
 4. 区分 standing branches 和 dynamic working branches。
-5. 在路由 skill、MCP tool 或 subagent 之前创建 branch packet。
+5. 在路由 skill、MCP tool、script 或 subagent 之前创建 working branch packet。可用时使用 `scripts/prepare_dispatch.py`。
 6. 工作过程中持续更新 branch outputs、conflicts 和 status。
 7. 合并前检查对应分支的 merge contract。
 8. 最终答案只能来自 merged branches 和明确 blocked branches。
@@ -73,6 +73,12 @@ standing branches 不计入动态预算。dynamic working branches 的软上限�
 - `pre_dispatch`：确保每次 specialized capability call 都有 branch packet。
 - `pre_merge`：验证 merge contract。
 - `final_response`：确保 unresolved branches 已被 merged、pruned，或报告为 blocked/open loops。
+
+不要用 `init_branch_state.py --force` 修复 `pre_dispatch` failure；那会重置分支图。应该创建或更新 working branch packet：
+
+```bash
+python3 scripts/prepare_dispatch.py --workspace <workspace> --name "<dispatch branch>" --scope "<bounded scope>" --expected-output "<expected result>" --capability scripts:"<tool or command>"
+```
 
 ## References
 

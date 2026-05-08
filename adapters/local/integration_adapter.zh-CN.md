@@ -25,6 +25,7 @@ runtime boot
 ```bash
 python3 skills/branchos/scripts/init_branch_state.py --objective "<current task objective>" --complexity medium
 python3 adapters/local/branchos_checkpoint.py --checkpoint task_start --emit-summary
+python3 skills/branchos/scripts/prepare_dispatch.py --name "<dispatch branch>" --scope "<bounded scope>" --expected-output "<expected result>" --capability scripts:"<tool>"
 python3 adapters/local/branchos_checkpoint.py --checkpoint pre_dispatch --emit-summary
 python3 adapters/local/branchos_checkpoint.py --checkpoint pre_merge --emit-summary
 python3 adapters/local/branchos_checkpoint.py --checkpoint final_response --emit-summary --emit-delta
