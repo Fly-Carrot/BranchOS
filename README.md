@@ -28,6 +28,7 @@ Use Branch Builder as the planning layer for medium or complex tasks.
 Branch Builder is virtual task branching, not Git branching.
 After normal harness boot and context loading, initialize or load `.agents/branch-builder/branch_state.yaml`.
 Never create Branch Builder state with `touch` or `echo '{}'`; use the Branch Builder init script when state is missing or invalid.
+Run Branch Builder state-changing commands serially; do not parallelize init, dispatch preparation, branch resolution, or checkpoints.
 Run one root task lifecycle only. Do not run boot, postflight, or the full lifecycle per virtual branch.
 If the harness has a shared planning-layer root, check that before declaring Branch Builder unavailable.
 
@@ -40,6 +41,9 @@ Final synthesis should use merged branch outputs only.
 Report `[BRANCH_BUILDER_ACTIVE]` only after `task_start` returns that `status_marker`.
 Report `[BRANCH_BUILDER_REPORT]` only after `final_response` returns that `status_marker`.
 Report `[BRANCH_BUILDER_OPEN]` when unresolved working branches remain.
+After every successful checkpoint, print a user-visible Branch Builder receipt.
+Do not leave the branch map only inside hidden tool output.
+The receipt must include status_marker, root objective, current phase, standing branches, working branches, merge queue, pruned branches, and open/unresolved branches when present.
 ```
 
 Local checkpoint adapter:

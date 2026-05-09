@@ -28,6 +28,7 @@ Use Branch Builder as the planning layer for medium or complex tasks.
 Branch Builder is virtual task branching, not Git branching.
 After normal harness boot and context loading, initialize or load `.agents/branch-builder/branch_state.yaml`.
 Never create Branch Builder state with `touch` or `echo '{}'`; use the Branch Builder init script when state is missing or invalid.
+Branch Builder 的状态修改命令必须串行运行；不要并行执行 init、dispatch preparation、branch resolution 或 checkpoint。
 Run one root task lifecycle only. Do not run boot, postflight, or the full lifecycle per virtual branch.
 If the harness has a shared planning-layer root, check that before declaring Branch Builder unavailable.
 
@@ -40,6 +41,9 @@ Final synthesis should use merged branch outputs only.
 Report `[BRANCH_BUILDER_ACTIVE]` only after `task_start` returns that `status_marker`.
 Report `[BRANCH_BUILDER_REPORT]` only after `final_response` returns that `status_marker`.
 Report `[BRANCH_BUILDER_OPEN]` when unresolved working branches remain.
+每个 checkpoint 成功后，都必须在用户可见回复中输出 Branch Builder receipt。
+不要只把 branch map 留在隐藏的工具日志里。
+receipt 必须包含 status_marker、root objective、current phase、standing branches、working branches、merge queue、pruned branches，以及存在时的 open/unresolved branches。
 ```
 
 本地 checkpoint adapter：

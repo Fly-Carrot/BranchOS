@@ -28,6 +28,8 @@ Your harness owns:
 
 Do not run runtime boot per virtual branch. Do not run your full task lifecycle per virtual branch. The root task gets one lifecycle; Branch Builder maintains lightweight local branch state inside that lifecycle.
 
+Run Branch Builder state-changing commands serially. `init_branch_state.py`, `prepare_dispatch.py`, `resolve_branch.py`, and `branch_builder_checkpoint.py` all read or write the same workspace-local state file, so parallel execution can make a checkpoint read stale state.
+
 ## Generic Snippet
 
 Use this as the harness-agnostic pattern:
@@ -89,6 +91,7 @@ The important boundary is that Branch Builder does not replace boot or postfligh
 - End output should include `[BRANCH_BUILDER_REPORT]` only after the `final_response` checkpoint output contains that `status_marker`.
 - If `final_response` returns `[BRANCH_BUILDER_OPEN]`, report unresolved branches and continue canonical postflight instead of claiming branch closure.
 - If any checkpoint returns `[BRANCH_BUILDER_ERROR]`, report it as a planning-layer failure and continue canonical postflight.
+- Every successful Branch Builder checkpoint should be copied into a user-visible Branch Builder receipt. The receipt should include `status_marker`, root objective, current phase, standing branches, working branches, merge queue, pruned branches, and open/unresolved branches when present.
 - Postflight can attach Branch Builder artifacts through the harness's supported sync mechanism.
 
 ## Global Agent Fabric Mode

@@ -28,6 +28,8 @@ harness 负责：
 
 不要为每个虚拟分支运行 runtime boot。不要为每个虚拟分支运行完整任务生命周期。根任务只有一个生命周期；Branch Builder 在这个生命周期内部维护轻量的本地分支状态。
 
+Branch Builder 的状态修改命令必须串行运行。`init_branch_state.py`、`prepare_dispatch.py`、`resolve_branch.py` 和 `branch_builder_checkpoint.py` 都会读写同一个 workspace-local state file；并行执行可能让 checkpoint 读到旧状态。
+
 ## 通用 Snippet
 
 这是 harness-agnostic 模式：
@@ -89,6 +91,7 @@ canonical boot
 - 只有当 `final_response` checkpoint 输出包含 `[BRANCH_BUILDER_REPORT]` 这个 `status_marker` 后，结束输出才应该报告 `[BRANCH_BUILDER_REPORT]`。
 - 如果 `final_response` 返回 `[BRANCH_BUILDER_OPEN]`，报告 unresolved branches，并继续 canonical postflight，不要声称分支已闭环。
 - 如果任何 checkpoint 返回 `[BRANCH_BUILDER_ERROR]`，把它报告为 planning-layer failure，并继续 canonical postflight。
+- 每个成功的 Branch Builder checkpoint 都应该被复制成用户可见的 Branch Builder receipt。receipt 应包含 `status_marker`、root objective、current phase、standing branches、working branches、merge queue、pruned branches，以及存在时的 open/unresolved branches。
 - postflight 可以通过 harness 支持的 sync 机制附加 Branch Builder artifacts。
 
 ## Global Agent Fabric 模式
