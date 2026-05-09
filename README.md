@@ -18,9 +18,9 @@ It is packaged in skill format for portability, but it should be treated as a ro
 complex task -> virtual branch graph -> branch packets -> scoped dispatch -> merge contracts -> final synthesis
 ```
 
-## Start-up Prompt
+## Recommended Start-up Prompt
 
-Paste this into your agent or project instructions:
+Use this as a portable prompt fragment and adapt paths or lifecycle names to your harness:
 
 ```text
 Use Branch Builder as the planning layer for medium or complex tasks.
@@ -59,9 +59,9 @@ python3 skills/branch-builder/scripts/resolve_branch.py --branch-id B001 --statu
 python3 adapters/local/branch_builder_checkpoint.py --checkpoint final_response --emit-summary --emit-delta
 ```
 
-## Shared Fabric Install
+## Optional Shared Planning-Layer Install
 
-For Global Agent Fabric-style harnesses, install Branch Builder once into the shared planning-layer root:
+If your harness has a shared skill/protocol root, install Branch Builder once there instead of copying it into every project. The included installer targets Agent Shared Fabric-compatible layouts; other harnesses can copy the same `skills/branch-builder` package and wire the commands into their own boot/checkpoint system.
 
 ```bash
 python3 adapters/shared_fabric/install_branch_builder_shared_fabric.py \
@@ -70,7 +70,7 @@ python3 adapters/shared_fabric/install_branch_builder_shared_fabric.py \
   --export-antigravity
 ```
 
-Then every workspace can use the shared scripts while keeping branch state local:
+Then each workspace can use shared scripts while keeping branch state local:
 
 ```bash
 python3 /path/to/global-agent-fabric/skills/generated/branch-builder/scripts/init_branch_state.py \
@@ -79,7 +79,7 @@ python3 /path/to/global-agent-fabric/skills/generated/branch-builder/scripts/ini
   --complexity medium
 ```
 
-Use the shared `prepare_dispatch.py`, `resolve_branch.py`, and `branch_builder_checkpoint.py` for dispatch and closure. Full sequence: [`docs/harness_integration.md`](docs/harness_integration.md).
+Use the shared `prepare_dispatch.py`, `resolve_branch.py`, and `branch_builder_checkpoint.py` for dispatch and closure. Treat the exact command paths below as examples, not requirements. Full sequence: [`docs/harness_integration.md`](docs/harness_integration.md).
 
 Workspace state stays in:
 
@@ -143,7 +143,7 @@ Branch Builder GitHub intro test passed.
 skills/branch-builder/                         # portable planning-layer package
 skills/branch-builder/scripts/                 # validator + checkpoint adapter
 adapters/local/                          # project-local adapter
-adapters/shared_fabric/                  # shared fabric installer
+adapters/shared_fabric/                  # optional Agent Shared Fabric-compatible installer
 examples/github_intro/                   # runnable proof
 docs/                                    # integration and visual reports
 ```

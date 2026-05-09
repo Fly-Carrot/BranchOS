@@ -58,7 +58,7 @@ When Branch Builder is active:
 7. Before final response or harness postflight, run:
    `python3 skills/branch-builder/scripts/resolve_branch.py --branch-id B001 --status merged --output "<merged branch result>"`
    `python3 adapters/local/branch_builder_checkpoint.py --checkpoint final_response --emit-summary --emit-delta`
-8. 把 Branch Builder checkpoint error 作为 branch-layer open loop 报告；不要让它阻塞 harness 的 canonical postflight。
+8. 把 Branch Builder checkpoint error 作为 branch-layer open loop 报告；不要让它阻塞 harness 正常的 final sync 或 postflight 路径。
 9. Report the branch map at task start and the branch delta at task end through your harness's normal logging or sync path.
 
 Routing relationship:
@@ -68,12 +68,12 @@ Routing relationship:
 - If Branch Builder is not installed in the current workspace, say so explicitly and fall back to the normal harness workflow.
 ```
 
-## Shared-Fabric 风格映射
+## 生命周期映射
 
-如果你的 harness 有 canonical boot 和 `route -> plan -> review -> dispatch -> execute -> report` 这样的根生命周期，可以这样放置 Branch Builder：
+如果你的 harness 有 boot 步骤，并且有类似 `route -> plan -> review -> dispatch -> execute -> report` 的根生命周期，可以这样放置 Branch Builder：
 
 ```text
-canonical boot
+host boot
   -> context load
   -> Branch Builder activation check
   -> Branch Builder task_start checkpoint
@@ -82,21 +82,21 @@ canonical boot
   -> execute branch packets
   -> pre_merge before root synthesis
   -> final_response checkpoint
-  -> canonical postflight sync
+  -> host final sync / postflight
 ```
 
 关键边界是：Branch Builder 不替代 boot 或 postflight。它只用本地分支状态增强它们。
 
 - 只有当 `task_start` checkpoint 输出包含 `[BRANCH_BUILDER_ACTIVE]` 这个 `status_marker` 后，开始输出才应该报告 `[BRANCH_BUILDER_ACTIVE]`。
 - 只有当 `final_response` checkpoint 输出包含 `[BRANCH_BUILDER_REPORT]` 这个 `status_marker` 后，结束输出才应该报告 `[BRANCH_BUILDER_REPORT]`。
-- 如果 `final_response` 返回 `[BRANCH_BUILDER_OPEN]`，报告 unresolved branches，并继续 canonical postflight，不要声称分支已闭环。
-- 如果任何 checkpoint 返回 `[BRANCH_BUILDER_ERROR]`，把它报告为 planning-layer failure，并继续 canonical postflight。
+- 如果 `final_response` 返回 `[BRANCH_BUILDER_OPEN]`，报告 unresolved branches，并继续宿主 harness 的 postflight/final-sync 路径，不要声称分支已闭环。
+- 如果任何 checkpoint 返回 `[BRANCH_BUILDER_ERROR]`，把它报告为 planning-layer failure，并继续宿主 harness 的 postflight/final-sync 路径。
 - 每个成功的 Branch Builder checkpoint 都应该被复制成用户可见的 Branch Builder receipt。receipt 应包含 `status_marker`、root objective、current phase、standing branches、working branches、merge queue、pruned branches，以及存在时的 open/unresolved branches。
 - postflight 可以通过 harness 支持的 sync 机制附加 Branch Builder artifacts。
 
-## Global Agent Fabric 模式
+## 可选共享 Root 模式
 
-在 shared-fabric 架构中，推荐把 Branch Builder 一次性安装到 shared planning-layer root，而不是复制到每个项目：
+对于 multi-workspace 系统，一个实用模式是把 Branch Builder 一次性安装到 shared planning-layer root，而不是复制到每个项目。仓库内置的 installer 是 Agent Shared Fabric 兼容布局示例；其他 harness 可以使用相同的 package layout，并接入自己的 registry 或 startup mechanism。
 
 ```bash
 python3 adapters/shared_fabric/install_branch_builder_shared_fabric.py \
@@ -167,7 +167,7 @@ python3 /path/to/global-agent-fabric/skills/generated/branch-builder/scripts/bra
   --emit-delta
 ```
 
-重要 runtime 规则：
+重要 shared-root 规则：
 
 ```text
 不要仅仅因为当前 workspace 缺少 `skills/branch-builder` 就声明 Branch Builder 不可用。
@@ -175,7 +175,7 @@ python3 /path/to/global-agent-fabric/skills/generated/branch-builder/scripts/bra
 `<global-agent-fabric>/skills/generated/branch-builder`。
 ```
 
-这是 multi-workspace 系统的推荐模式：Branch Builder 全局安装，branch state 项目本地保存。
+这是 multi-workspace 系统的推荐模式：Branch Builder 共享安装，branch state 项目本地保存。
 
 ## 输出契约
 
@@ -204,4 +204,4 @@ Artifacts: .agents/branch-builder/branch_state.yaml, .agents/branch-builder/bran
 
 ## 可移植性规则
 
-把 shared-fabric、Maestro、CI、dashboard 或 memory 相关行为放在 local adapter 或 harness snippet 中。Branch Builder core 保持可移植：skill instructions、branch schema、checkpoint script、templates 和 examples。
+把 Agent Shared Fabric、Maestro、CI、dashboard 或 memory 相关行为放在 local adapter 或 harness snippet 中。Branch Builder core 保持可移植：skill instructions、branch schema、checkpoint script、templates 和 examples。

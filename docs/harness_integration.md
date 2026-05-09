@@ -58,7 +58,7 @@ When Branch Builder is active:
 7. Before final response or harness postflight, run:
    `python3 skills/branch-builder/scripts/resolve_branch.py --branch-id B001 --status merged --output "<merged branch result>"`
    `python3 adapters/local/branch_builder_checkpoint.py --checkpoint final_response --emit-summary --emit-delta`
-8. Report Branch Builder checkpoint errors as branch-layer open loops; do not let them block the harness's canonical postflight.
+8. Report Branch Builder checkpoint errors as branch-layer open loops; do not let them block the harness's normal final sync or postflight path.
 9. Report the branch map at task start and the branch delta at task end through your harness's normal logging or sync path.
 
 Routing relationship:
@@ -68,12 +68,12 @@ Routing relationship:
 - If Branch Builder is not installed in the current workspace, say so explicitly and fall back to the normal harness workflow.
 ```
 
-## Shared-Fabric-Style Mapping
+## Lifecycle Mapping
 
-If your harness has a canonical boot plus a root lifecycle such as `route -> plan -> review -> dispatch -> execute -> report`, place Branch Builder like this:
+If your harness has a boot step plus a root lifecycle such as `route -> plan -> review -> dispatch -> execute -> report`, place Branch Builder like this:
 
 ```text
-canonical boot
+host boot
   -> context load
   -> Branch Builder activation check
   -> Branch Builder task_start checkpoint
@@ -82,21 +82,21 @@ canonical boot
   -> execute branch packets
   -> pre_merge before root synthesis
   -> final_response checkpoint
-  -> canonical postflight sync
+  -> host final sync / postflight
 ```
 
 The important boundary is that Branch Builder does not replace boot or postflight. It enriches them with local branch state:
 
 - Start output should include `[BRANCH_BUILDER_ACTIVE]` only after the `task_start` checkpoint output contains that `status_marker`.
 - End output should include `[BRANCH_BUILDER_REPORT]` only after the `final_response` checkpoint output contains that `status_marker`.
-- If `final_response` returns `[BRANCH_BUILDER_OPEN]`, report unresolved branches and continue canonical postflight instead of claiming branch closure.
-- If any checkpoint returns `[BRANCH_BUILDER_ERROR]`, report it as a planning-layer failure and continue canonical postflight.
+- If `final_response` returns `[BRANCH_BUILDER_OPEN]`, report unresolved branches and continue the host postflight/final-sync path instead of claiming branch closure.
+- If any checkpoint returns `[BRANCH_BUILDER_ERROR]`, report it as a planning-layer failure and continue the host postflight/final-sync path.
 - Every successful Branch Builder checkpoint should be copied into a user-visible Branch Builder receipt. The receipt should include `status_marker`, root objective, current phase, standing branches, working branches, merge queue, pruned branches, and open/unresolved branches when present.
 - Postflight can attach Branch Builder artifacts through the harness's supported sync mechanism.
 
-## Global Agent Fabric Mode
+## Optional Shared-Root Mode
 
-In a shared-fabric architecture, install Branch Builder once into the shared planning-layer root instead of copying it into every project:
+For multi-workspace systems, a useful pattern is to install Branch Builder once into a shared planning-layer root instead of copying it into every project. The included installer is an example for Agent Shared Fabric-compatible layouts; other harnesses can use the same package layout with their own registry or startup mechanism.
 
 ```bash
 python3 adapters/shared_fabric/install_branch_builder_shared_fabric.py \
@@ -167,7 +167,7 @@ python3 /path/to/global-agent-fabric/skills/generated/branch-builder/scripts/bra
   --emit-delta
 ```
 
-Important runtime rule:
+Important shared-root rule:
 
 ```text
 Do not declare Branch Builder unavailable just because the current workspace lacks `skills/branch-builder`.
@@ -175,7 +175,7 @@ First check whether the harness has a shared Branch Builder protocol package, su
 `<global-agent-fabric>/skills/generated/branch-builder`.
 ```
 
-This is the recommended mode for multi-workspace systems: Branch Builder is globally installed, while branch state remains project-local.
+This is the recommended pattern for multi-workspace systems: Branch Builder is shared, while branch state remains project-local.
 
 ## Output Contract
 
@@ -204,4 +204,4 @@ Standing branches may remain active if they represent durable lenses rather than
 
 ## Portability Rule
 
-Keep shared-fabric, Maestro, CI, dashboard, or memory-specific behavior in a local adapter or harness snippet. Keep Branch Builder core portable: skill instructions, branch schema, checkpoint script, templates, and examples.
+Keep Agent Shared Fabric, Maestro, CI, dashboard, or memory-specific behavior in a local adapter or harness snippet. Keep Branch Builder core portable: skill instructions, branch schema, checkpoint script, templates, and examples.

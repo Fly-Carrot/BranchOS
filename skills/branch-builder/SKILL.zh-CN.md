@@ -99,7 +99,7 @@ python3 scripts/prepare_dispatch.py --workspace <workspace> --name "<dispatch br
 python3 scripts/resolve_branch.py --workspace <workspace> --branch-id B001 --status merged --output "<branch result summary>"
 ```
 
-Branch Builder checkpoint error 是规划层信号，应该报告出来，但不应该阻止宿主 harness 继续运行 canonical postflight 或 memory sync。
+Branch Builder checkpoint error 是规划层信号，应该报告出来，但不应该阻止宿主 harness 继续运行自己的 postflight 或 memory sync。
 
 ## References
 
@@ -124,4 +124,4 @@ Branch Builder checkpoint error 是规划层信号，应该报告出来，但不
 python3 scripts/init_branch_state.py --workspace <workspace> --objective "<current task objective>" --complexity medium
 ```
 
-这些是 task/project state files，不是 global memory。长期决策应该通过 runtime 的 canonical postflight 或 memory mechanism 总结写回。
+这些是 task/project state files，不是 global memory。长期决策应该通过 runtime 自己的 postflight 或 memory mechanism 总结写回。

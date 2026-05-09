@@ -18,9 +18,9 @@ Branch Builder 帮助 agent 不再把复杂任务当成一条扁平 checklist。
 复杂任务 -> 虚拟分支图 -> branch packet -> 有边界的能力分发 -> merge contract -> 最终合成
 ```
 
-## 启动 Prompt
+## 推荐启动 Prompt
 
-把下面内容放进你的 agent 或项目指令中：
+下面是一个可移植的 prompt 片段。请根据你的 harness 调整路径、生命周期命名和 checkpoint 接入方式：
 
 ```text
 Use Branch Builder as the planning layer for medium or complex tasks.
@@ -59,9 +59,9 @@ python3 skills/branch-builder/scripts/resolve_branch.py --branch-id B001 --statu
 python3 adapters/local/branch_builder_checkpoint.py --checkpoint final_response --emit-summary --emit-delta
 ```
 
-## Shared Fabric 安装
+## 可选共享规划层安装
 
-对于 Global Agent Fabric 类型的 harness，把 Branch Builder 一次性安装到共享规划层 root：
+如果你的 harness 有共享 skill/protocol root，可以把 Branch Builder 一次性安装在那里，而不是复制到每个项目。仓库内置的 installer 面向 Agent Shared Fabric 兼容布局；其他 harness 可以复用同一个 `skills/branch-builder` 包，并把命令接入自己的 boot/checkpoint 系统。
 
 ```bash
 python3 adapters/shared_fabric/install_branch_builder_shared_fabric.py \
@@ -79,7 +79,7 @@ python3 /path/to/global-agent-fabric/skills/generated/branch-builder/scripts/ini
   --complexity medium
 ```
 
-使用共享的 `prepare_dispatch.py`、`resolve_branch.py` 和 `branch_builder_checkpoint.py` 完成分发与闭环。完整流程见 [`docs/harness_integration.zh-CN.md`](docs/harness_integration.zh-CN.md)。
+使用共享的 `prepare_dispatch.py`、`resolve_branch.py` 和 `branch_builder_checkpoint.py` 完成分发与闭环。下面的命令路径只是示例，不是强制要求。完整流程见 [`docs/harness_integration.zh-CN.md`](docs/harness_integration.zh-CN.md)。
 
 workspace 状态保存在：
 
@@ -143,7 +143,7 @@ Branch Builder GitHub intro test passed.
 skills/branch-builder/                         # 可移植规划层包
 skills/branch-builder/scripts/                 # validator 与 checkpoint adapter
 adapters/local/                          # 项目本地 adapter
-adapters/shared_fabric/                  # shared fabric 安装器
+adapters/shared_fabric/                  # 可选 Agent Shared Fabric 兼容安装器
 examples/github_intro/                   # 可运行证明
 docs/                                    # 集成文档与可视化报告
 ```

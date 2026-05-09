@@ -99,7 +99,7 @@ If `final_response` reports unresolved working branches, do not use `init --forc
 python3 scripts/resolve_branch.py --workspace <workspace> --branch-id B001 --status merged --output "<branch result summary>"
 ```
 
-A Branch Builder checkpoint error is a planning-layer signal. It should be reported, but it must not prevent the host harness from running its canonical postflight or memory sync.
+A Branch Builder checkpoint error is a planning-layer signal. It should be reported, but it must not prevent the host harness from running its normal postflight or memory sync.
 
 ## References
 
@@ -124,4 +124,4 @@ Never create the state file with `touch` or `echo '{}'`; an empty object is not 
 python3 scripts/init_branch_state.py --workspace <workspace> --objective "<current task objective>" --complexity medium
 ```
 
-These are task/project state files, not global memory. Long-lived decisions should be summarized through the runtime's canonical postflight or memory mechanism.
+These are task/project state files, not global memory. Long-lived decisions should be summarized through the runtime's normal postflight or memory mechanism.
