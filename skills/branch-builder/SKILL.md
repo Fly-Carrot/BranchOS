@@ -76,6 +76,17 @@ Use these checkpoints when the runtime or project provides a hook/adapter:
 - `pre_merge`: validate the merge contract.
 - `final_response`: ensure unresolved branches are merged, pruned, or reported as blocked/open loops.
 
+Checkpoint scripts emit stable `status_marker` values. Treat these markers like boot/sync receipts:
+
+- `[BRANCH_BUILDER_READY]`: state was initialized or repaired successfully.
+- `[BRANCH_BUILDER_ACTIVE]`: `task_start` passed and the planning layer is active.
+- `[BRANCH_BUILDER_CHECKPOINT_OK]`: `pre_dispatch` or `pre_merge` passed.
+- `[BRANCH_BUILDER_REPORT]`: `final_response` passed and the branch delta is safe to report.
+- `[BRANCH_BUILDER_OPEN]`: `final_response` found unresolved working branches.
+- `[BRANCH_BUILDER_ERROR]`: checkpoint failed for another reason.
+
+Only report Branch Builder activation or final branch closure after the relevant marker is present in script output.
+
 Do not repair a `pre_dispatch` failure by rerunning `init_branch_state.py --force`; that resets the branch graph. Create or update the working branch packet instead:
 
 ```bash

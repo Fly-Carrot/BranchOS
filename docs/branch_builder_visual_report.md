@@ -116,11 +116,11 @@ bash examples/github_intro/run_test.sh
 Expected output:
 
 ```text
-[1/5] task_start fixture: ok
-[2/5] pre_dispatch fixture: ok
-[3/5] pre_merge fixture: ok
-[4/5] final_response fixture: ok
-[5/5] unresolved final_response guard: ok
+[1/5] task_start fixture: ok [BRANCH_BUILDER_ACTIVE]
+[2/5] pre_dispatch fixture: ok [BRANCH_BUILDER_CHECKPOINT_OK]
+[3/5] pre_merge fixture: ok [BRANCH_BUILDER_CHECKPOINT_OK]
+[4/5] final_response fixture: ok [BRANCH_BUILDER_REPORT]
+[5/5] unresolved final_response guard: ok [BRANCH_BUILDER_OPEN]
 Branch Builder GitHub intro test passed.
 ```
 

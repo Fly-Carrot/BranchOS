@@ -132,6 +132,7 @@ def render_global_rule(global_root: Path) -> str:
             "- Never repair a `pre_dispatch` failure with `init --force`. `pre_dispatch` needs a working branch packet; create or update it with the shared prepare-dispatch script.",
             "- Before `pre_merge`, resolve merge-ready working branches with the shared resolve-branch script as `ready_to_merge`; before `final_response`, resolve open working branches as `merged`, `blocked`, or `pruned`.",
             "- A Branch Builder `final_response` error should be reported as `[BRANCH_BUILDER_OPEN]` or `[BRANCH_BUILDER_ERROR]`, but it must not prevent canonical `postflight_sync.py` from running.",
+            "- Branch Builder checkpoint scripts emit stable `status_marker` values. Report `[BRANCH_BUILDER_ACTIVE]` only after `task_start` returns that marker; report `[BRANCH_BUILDER_REPORT]` only after `final_response` returns that marker.",
             "- Do not run `preflight_check.py` or `sync_all.py` per virtual branch.",
             "- Do not emit the full `route -> plan -> review -> dispatch -> execute -> report` lifecycle per virtual branch. The root task gets one canonical lifecycle; Branch Builder maintains branch state inside it.",
             "",

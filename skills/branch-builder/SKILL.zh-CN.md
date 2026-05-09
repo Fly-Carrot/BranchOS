@@ -76,6 +76,17 @@ standing branches 不计入动态预算。dynamic working branches 的软上限�
 - `pre_merge`：验证 merge contract。
 - `final_response`：确保 unresolved branches 已被 merged、pruned，或报告为 blocked/open loops。
 
+checkpoint 脚本会输出稳定的 `status_marker`。把这些 marker 当成 boot/sync receipt 使用：
+
+- `[BRANCH_BUILDER_READY]`：state 已成功初始化或修复。
+- `[BRANCH_BUILDER_ACTIVE]`：`task_start` 通过，规划层已激活。
+- `[BRANCH_BUILDER_CHECKPOINT_OK]`：`pre_dispatch` 或 `pre_merge` 通过。
+- `[BRANCH_BUILDER_REPORT]`：`final_response` 通过，可以安全报告 branch delta。
+- `[BRANCH_BUILDER_OPEN]`：`final_response` 发现 unresolved working branches。
+- `[BRANCH_BUILDER_ERROR]`：checkpoint 因其他原因失败。
+
+只有当脚本输出对应 marker 后，才报告 Branch Builder 已激活或最终分支闭环成功。
+
 不要用 `init_branch_state.py --force` 修复 `pre_dispatch` failure；那会重置分支图。应该创建或更新 working branch packet：
 
 ```bash

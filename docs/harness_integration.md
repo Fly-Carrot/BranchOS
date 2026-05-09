@@ -85,8 +85,10 @@ canonical boot
 
 The important boundary is that Branch Builder does not replace boot or postflight. It enriches them with local branch state:
 
-- Start output can include `[BRANCH_BUILDER_ACTIVE]`, root task, standing branches, working branches, and next checkpoint.
-- End output can include `[BRANCH_BUILDER_REPORT]`, created branches, updated branches, merged branches, pruned branches, blocked branches, and artifacts.
+- Start output should include `[BRANCH_BUILDER_ACTIVE]` only after the `task_start` checkpoint output contains that `status_marker`.
+- End output should include `[BRANCH_BUILDER_REPORT]` only after the `final_response` checkpoint output contains that `status_marker`.
+- If `final_response` returns `[BRANCH_BUILDER_OPEN]`, report unresolved branches and continue canonical postflight instead of claiming branch closure.
+- If any checkpoint returns `[BRANCH_BUILDER_ERROR]`, report it as a planning-layer failure and continue canonical postflight.
 - Postflight can attach Branch Builder artifacts through the harness's supported sync mechanism.
 
 ## Global Agent Fabric Mode

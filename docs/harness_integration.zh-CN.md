@@ -85,8 +85,10 @@ canonical boot
 
 关键边界是：Branch Builder 不替代 boot 或 postflight。它只用本地分支状态增强它们。
 
-- 开始输出可以包含 `[BRANCH_BUILDER_ACTIVE]`、root task、standing branches、working branches 和 next checkpoint。
-- 结束输出可以包含 `[BRANCH_BUILDER_REPORT]`、created branches、updated branches、merged branches、pruned branches、blocked branches 和 artifacts。
+- 只有当 `task_start` checkpoint 输出包含 `[BRANCH_BUILDER_ACTIVE]` 这个 `status_marker` 后，开始输出才应该报告 `[BRANCH_BUILDER_ACTIVE]`。
+- 只有当 `final_response` checkpoint 输出包含 `[BRANCH_BUILDER_REPORT]` 这个 `status_marker` 后，结束输出才应该报告 `[BRANCH_BUILDER_REPORT]`。
+- 如果 `final_response` 返回 `[BRANCH_BUILDER_OPEN]`，报告 unresolved branches，并继续 canonical postflight，不要声称分支已闭环。
+- 如果任何 checkpoint 返回 `[BRANCH_BUILDER_ERROR]`，把它报告为 planning-layer failure，并继续 canonical postflight。
 - postflight 可以通过 harness 支持的 sync 机制附加 Branch Builder artifacts。
 
 ## Global Agent Fabric 模式

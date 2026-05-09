@@ -36,6 +36,10 @@ Do not use init --force to fix pre_dispatch; prepare a working branch packet ins
 Before root synthesis, validate merge contracts.
 Before final response, resolve working branches as merged, blocked, or pruned.
 Final synthesis should use merged branch outputs only.
+
+Report `[BRANCH_BUILDER_ACTIVE]` only after `task_start` returns that `status_marker`.
+Report `[BRANCH_BUILDER_REPORT]` only after `final_response` returns that `status_marker`.
+Report `[BRANCH_BUILDER_OPEN]` when unresolved working branches remain.
 ```
 
 本地 checkpoint adapter：
@@ -121,11 +125,11 @@ bash examples/github_intro/run_test.sh
 预期输出：
 
 ```text
-[1/5] task_start fixture: ok
-[2/5] pre_dispatch fixture: ok
-[3/5] pre_merge fixture: ok
-[4/5] final_response fixture: ok
-[5/5] unresolved final_response guard: ok
+[1/5] task_start fixture: ok [BRANCH_BUILDER_ACTIVE]
+[2/5] pre_dispatch fixture: ok [BRANCH_BUILDER_CHECKPOINT_OK]
+[3/5] pre_merge fixture: ok [BRANCH_BUILDER_CHECKPOINT_OK]
+[4/5] final_response fixture: ok [BRANCH_BUILDER_REPORT]
+[5/5] unresolved final_response guard: ok [BRANCH_BUILDER_OPEN]
 Branch Builder GitHub intro test passed.
 ```
 

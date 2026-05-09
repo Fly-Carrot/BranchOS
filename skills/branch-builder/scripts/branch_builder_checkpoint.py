@@ -104,6 +104,18 @@ def needs_resolution_hint(validation: dict[str, Any]) -> bool:
     return "final_response has unresolved working branches" in errors
 
 
+def status_marker(checkpoint: str, validation: dict[str, Any]) -> str:
+    if validation.get("status") == "ok":
+        if checkpoint == "task_start":
+            return "[BRANCH_BUILDER_ACTIVE]"
+        if checkpoint == "final_response":
+            return "[BRANCH_BUILDER_REPORT]"
+        return "[BRANCH_BUILDER_CHECKPOINT_OK]"
+    if checkpoint == "final_response" and needs_resolution_hint(validation):
+        return "[BRANCH_BUILDER_OPEN]"
+    return "[BRANCH_BUILDER_ERROR]"
+
+
 def append_event(path: Path, event: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as handle:
@@ -237,18 +249,20 @@ def main() -> int:
             "stdout": completed.stdout,
             "stderr": completed.stderr,
         }
+    marker = status_marker(args.checkpoint, validation)
     event = {
         "timestamp": local_now(),
         "event": args.checkpoint,
         "task_id": task_id,
         "workspace": str(workspace),
         "status": validation.get("status", "error"),
+        "status_marker": marker,
         "summary": args.summary or f"Branch Builder checkpoint {args.checkpoint}",
         "errors": validation.get("errors", []),
         "warnings": validation.get("warnings", []),
     }
     append_event(events_path, event)
-    result = {"event_written": str(events_path), **validation}
+    result = {"event_written": str(events_path), "status_marker": marker, **validation}
     if needs_initialization_hint(validation):
         result["initialization_hint"] = initialization_hint(workspace, init_script)
     if needs_dispatch_hint(validation):

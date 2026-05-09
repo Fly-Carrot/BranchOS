@@ -288,6 +288,7 @@ def main() -> int:
         "task_id": task_id,
         "workspace": str(workspace),
         "status": "ok" if existing_valid else "error",
+        "status_marker": "[BRANCH_BUILDER_READY]" if existing_valid else "[BRANCH_BUILDER_ERROR]",
         "summary": f"Branch Builder state initialization: {action}",
         "state": str(state_path),
         "backup": str(backup_path) if backup_path else "",
@@ -297,6 +298,7 @@ def main() -> int:
     append_event(events_path, event)
     result = {
         "status": "ok" if existing_valid else "error",
+        "status_marker": "[BRANCH_BUILDER_READY]" if existing_valid else "[BRANCH_BUILDER_ERROR]",
         "action": action,
         "workspace": str(workspace),
         "state": str(state_path),
