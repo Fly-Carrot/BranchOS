@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""BranchOS checkpoint adapter for local or shared-skill installs.
+"""Branch Builder checkpoint adapter for local or shared planning-layer installs.
 
-This script keeps BranchOS runtime state project-local while allowing the
-BranchOS skill itself to live in a shared skill root such as Global Agent
-Fabric's `skills/generated/branchos` directory.
+This script keeps Branch Builder runtime state project-local while allowing the
+Branch Builder package itself to live in a shared planning-layer root such as Global Agent
+Fabric's `skills/generated/branch-builder` directory.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ OPEN_STATUSES = {"proposed", "active", "blocked", "reviewing", "ready_to_merge",
 
 def initialization_hint(workspace: Path, init_script: Path) -> str:
     return (
-        "Do not initialize BranchOS with touch or echo '{}'. Run: "
+        "Do not initialize Branch Builder with touch or echo '{}'. Run: "
         f"python3 {shlex.quote(str(init_script))} --workspace {shlex.quote(str(workspace))} "
         '--objective "<current task objective>" --complexity medium'
     )
@@ -58,12 +58,12 @@ def load_state(path: Path, workspace: Path, init_script: Path) -> dict[str, Any]
         text = path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(
-            f"BranchOS state file not found: {path}. "
+            f"Branch Builder state file not found: {path}. "
             + initialization_hint(workspace, init_script)
         ) from exc
     if not text.strip():
         raise SystemExit(
-            f"BranchOS state file is empty: {path}. "
+            f"Branch Builder state file is empty: {path}. "
             + initialization_hint(workspace, init_script)
         )
     try:
@@ -200,7 +200,7 @@ def checkpoint_delta(state: dict[str, Any], events_path: Path) -> dict[str, Any]
 def main() -> int:
     script_dir = Path(__file__).resolve().parent
     default_workspace = Path.cwd()
-    parser = argparse.ArgumentParser(description="Run a BranchOS checkpoint.")
+    parser = argparse.ArgumentParser(description="Run a Branch Builder checkpoint.")
     parser.add_argument("--checkpoint", required=True, choices=sorted(CHECKPOINTS))
     parser.add_argument("--workspace", type=Path, default=default_workspace)
     parser.add_argument("--state", type=Path)
@@ -212,8 +212,8 @@ def main() -> int:
     args = parser.parse_args()
 
     workspace = args.workspace.expanduser().resolve()
-    state_path = args.state or workspace / ".agents" / "branchos" / "branch_state.yaml"
-    events_path = args.events or workspace / ".agents" / "branchos" / "branch_events.ndjson"
+    state_path = args.state or workspace / ".agents" / "branch-builder" / "branch_state.yaml"
+    events_path = args.events or workspace / ".agents" / "branch-builder" / "branch_events.ndjson"
 
     init_script = script_dir / "init_branch_state.py"
     prepare_script = script_dir / "prepare_dispatch.py"
@@ -243,7 +243,7 @@ def main() -> int:
         "task_id": task_id,
         "workspace": str(workspace),
         "status": validation.get("status", "error"),
-        "summary": args.summary or f"BranchOS checkpoint {args.checkpoint}",
+        "summary": args.summary or f"Branch Builder checkpoint {args.checkpoint}",
         "errors": validation.get("errors", []),
         "warnings": validation.get("warnings", []),
     }
@@ -256,9 +256,9 @@ def main() -> int:
     if needs_resolution_hint(validation):
         result["resolution_hint"] = resolution_hint(workspace, resolve_script)
     if args.emit_summary:
-        result["branchos_summary"] = checkpoint_summary(state, args.checkpoint)
+        result["branch_builder_summary"] = checkpoint_summary(state, args.checkpoint)
     if args.emit_delta:
-        result["branchos_delta"] = checkpoint_delta(state, events_path)
+        result["branch_builder_delta"] = checkpoint_delta(state, events_path)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return completed.returncode
 

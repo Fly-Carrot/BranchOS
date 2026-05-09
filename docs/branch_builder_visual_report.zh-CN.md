@@ -1,6 +1,6 @@
-# BranchOS 可视化报告
+# Branch Builder 可视化报告
 
-[English](branchos_visual_report.md) | [简体中文](branchos_visual_report.zh-CN.md)
+[English](branch_builder_visual_report.md) | [简体中文](branch_builder_visual_report.zh-CN.md)
 
 本报告解释 `examples/github_intro` 示例：这个实例是什么、分支图长什么样、每个分支如何运作，以及测试实际验证了什么。
 
@@ -121,7 +121,7 @@ bash examples/github_intro/run_test.sh
 [3/5] pre_merge fixture: ok
 [4/5] final_response fixture: ok
 [5/5] unresolved final_response guard: ok
-BranchOS GitHub intro test passed.
+Branch Builder GitHub intro test passed.
 ```
 
 各 checkpoint 验证内容：
@@ -136,7 +136,7 @@ BranchOS GitHub intro test passed.
 
 ## 7. 为什么这个 demo 重要
 
-这个 demo 说明 BranchOS 可以：
+这个 demo 说明 Branch Builder 可以：
 
 1. 把复杂任务转化为常驻分支和工作分支。
 2. 通过 branch packet 约束专业能力调用。

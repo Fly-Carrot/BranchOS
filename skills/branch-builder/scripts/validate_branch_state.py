@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate a BranchOS branch_state.yaml file.
+"""Validate a Branch Builder branch_state.yaml file.
 
 The preferred state file is JSON-compatible YAML so this validator can use only
 the Python standard library.
@@ -201,7 +201,7 @@ def validate_checkpoint(state: dict[str, Any], checkpoint: str | None, errors: l
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate BranchOS branch state.")
+    parser = argparse.ArgumentParser(description="Validate Branch Builder branch state.")
     parser.add_argument("state_file", type=Path)
     parser.add_argument("--checkpoint", choices=sorted(CHECKPOINTS))
     args = parser.parse_args()

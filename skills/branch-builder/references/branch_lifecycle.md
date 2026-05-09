@@ -1,6 +1,6 @@
 # Branch Lifecycle
 
-BranchOS uses Git-like words as task-state operations only. These operations never create real Git branches.
+Branch Builder uses Git-like words as task-state operations only. These operations never create real Git branches.
 
 ## Operations
 

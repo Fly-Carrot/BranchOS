@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create or update a BranchOS working branch before specialized dispatch."""
+"""Create or update a Branch Builder working branch before specialized dispatch."""
 
 from __future__ import annotations
 
@@ -23,11 +23,11 @@ def load_state(path: Path) -> dict[str, Any]:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
-        raise SystemExit(f"BranchOS state file not found: {path}. Run init_branch_state.py first.") from exc
+        raise SystemExit(f"Branch Builder state file not found: {path}. Run init_branch_state.py first.") from exc
     except json.JSONDecodeError as exc:
-        raise SystemExit(f"Cannot parse BranchOS state file: {path}: {exc}") from exc
+        raise SystemExit(f"Cannot parse Branch Builder state file: {path}: {exc}") from exc
     if not isinstance(data, dict):
-        raise SystemExit(f"BranchOS state must be a JSON object: {path}")
+        raise SystemExit(f"Branch Builder state must be a JSON object: {path}")
     return data
 
 
@@ -164,7 +164,7 @@ def validate_pre_dispatch(state_path: Path, validator: Path) -> tuple[bool, list
 
 def main() -> int:
     script_dir = Path(__file__).resolve().parent
-    parser = argparse.ArgumentParser(description="Prepare a BranchOS branch packet before dispatch.")
+    parser = argparse.ArgumentParser(description="Prepare a Branch Builder branch packet before dispatch.")
     parser.add_argument("--workspace", type=Path, default=Path.cwd())
     parser.add_argument("--state", type=Path)
     parser.add_argument("--events", type=Path)
@@ -187,8 +187,8 @@ def main() -> int:
     args = parser.parse_args()
 
     workspace = args.workspace.expanduser().resolve()
-    state_path = (args.state or workspace / ".agents" / "branchos" / "branch_state.yaml").expanduser().resolve()
-    events_path = (args.events or workspace / ".agents" / "branchos" / "branch_events.ndjson").expanduser().resolve()
+    state_path = (args.state or workspace / ".agents" / "branch-builder" / "branch_state.yaml").expanduser().resolve()
+    events_path = (args.events or workspace / ".agents" / "branch-builder" / "branch_events.ndjson").expanduser().resolve()
     state = load_state(state_path)
     capabilities = parse_capability(args.capability)
     if not any(capabilities.values()):

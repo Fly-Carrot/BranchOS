@@ -1,6 +1,6 @@
 # Routing Protocol
 
-BranchOS routes capabilities through branch packets.
+Branch Builder routes capabilities through branch packets.
 
 ## Before Dispatch
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Resolve a BranchOS branch after dispatch or review."""
+"""Resolve a Branch Builder branch after dispatch or review."""
 
 from __future__ import annotations
 
@@ -21,11 +21,11 @@ def load_state(path: Path) -> dict[str, Any]:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
-        raise SystemExit(f"BranchOS state file not found: {path}. Run init_branch_state.py first.") from exc
+        raise SystemExit(f"Branch Builder state file not found: {path}. Run init_branch_state.py first.") from exc
     except json.JSONDecodeError as exc:
-        raise SystemExit(f"Cannot parse BranchOS state file: {path}: {exc}") from exc
+        raise SystemExit(f"Cannot parse Branch Builder state file: {path}: {exc}") from exc
     if not isinstance(data, dict):
-        raise SystemExit(f"BranchOS state must be a JSON object: {path}")
+        raise SystemExit(f"Branch Builder state must be a JSON object: {path}")
     return data
 
 
@@ -80,7 +80,7 @@ def add_to_merge_queue(state: dict[str, Any], branch_id: str) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Resolve a BranchOS branch.")
+    parser = argparse.ArgumentParser(description="Resolve a Branch Builder branch.")
     parser.add_argument("--workspace", type=Path, default=Path.cwd())
     parser.add_argument("--state", type=Path)
     parser.add_argument("--events", type=Path)
@@ -96,8 +96,8 @@ def main() -> int:
     args = parser.parse_args()
 
     workspace = args.workspace.expanduser().resolve()
-    state_path = (args.state or workspace / ".agents" / "branchos" / "branch_state.yaml").expanduser().resolve()
-    events_path = (args.events or workspace / ".agents" / "branchos" / "branch_events.ndjson").expanduser().resolve()
+    state_path = (args.state or workspace / ".agents" / "branch-builder" / "branch_state.yaml").expanduser().resolve()
+    events_path = (args.events or workspace / ".agents" / "branch-builder" / "branch_events.ndjson").expanduser().resolve()
     state = load_state(state_path)
 
     found = False
@@ -137,7 +137,7 @@ def main() -> int:
         "status": "ok",
         "branch_id": args.branch_id,
         "branch_status": args.status,
-        "summary": args.summary or f"Resolved BranchOS branch {args.branch_id} as {args.status}",
+        "summary": args.summary or f"Resolved Branch Builder branch {args.branch_id} as {args.status}",
         "errors": [],
     }
     append_event(events_path, event)

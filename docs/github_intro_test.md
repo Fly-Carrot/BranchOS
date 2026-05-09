@@ -1,8 +1,8 @@
-# GitHub Intro Test: BranchOS On A Research Pipeline Task
+# GitHub Intro Test: Branch Builder On A Research Pipeline Task
 
 [English](github_intro_test.md) | [Simplified Chinese](github_intro_test.zh-CN.md)
 
-This document is a public-facing walkthrough of how BranchOS behaves on a medium-to-complex task.
+This document is a public-facing walkthrough of how Branch Builder behaves on a medium-to-complex task.
 
 ## Test Task
 
@@ -10,7 +10,7 @@ Design a research-grade bird-acoustic analysis pipeline that ingests field recor
 
 ## Operating Mode
 
-BranchOS does not start by writing the answer. It first creates a virtual branch graph:
+Branch Builder does not start by writing the answer. It first creates a virtual branch graph:
 
 - `S001 Intent and Constraints`: keeps locked requirements visible.
 - `S002 Architecture Boundary`: defines module boundaries and data flow.
@@ -24,7 +24,7 @@ The standing branches remain active as persistent lenses. The working branches m
 
 ## Dispatch Shape
 
-Before calling a specialized capability, BranchOS creates a branch packet. The demo packet is:
+Before calling a specialized capability, Branch Builder creates a branch packet. The demo packet is:
 
 `examples/github_intro/branch_packet_architecture.md`
 
@@ -46,7 +46,7 @@ Expected output:
 [3/5] pre_merge fixture: ok
 [4/5] final_response fixture: ok
 [5/5] unresolved final_response guard: ok
-BranchOS GitHub intro test passed.
+Branch Builder GitHub intro test passed.
 ```
 
 ## Expected Final Synthesis
@@ -65,7 +65,7 @@ See:
 
 ## What This Test Proves
 
-- BranchOS can represent a complex task as standing and working branches.
+- Branch Builder can represent a complex task as standing and working branches.
 - Specialized dispatch is scoped by a branch packet.
 - Merge readiness is explicit.
 - Final response validation fails if working branches remain unresolved.

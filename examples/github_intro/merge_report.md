@@ -1,4 +1,4 @@
-# BranchOS Merge Report
+# Branch Builder Merge Report
 
 [English](merge_report.md) | [Simplified Chinese](merge_report.zh-CN.md)
 

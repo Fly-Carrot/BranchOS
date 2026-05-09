@@ -1,10 +1,10 @@
 # Branch Schema
 
-BranchOS stores branch state as YAML or JSON-compatible YAML. Use JSON-compatible YAML when no YAML parser is guaranteed.
+Branch Builder stores branch state as YAML or JSON-compatible YAML. Use JSON-compatible YAML when no YAML parser is guaranteed.
 
 ## Root Fields
 
-- `schema_version`: BranchOS state schema version. Use `1`.
+- `schema_version`: Branch Builder state schema version. Use `1`.
 - `root_task`: root objective and locked constraints.
 - `standing_branches`: persistent branches that represent durable concerns.
 - `working_branches`: dynamic branches for the current task.
@@ -29,8 +29,8 @@ Required fields:
 
 - `id`: stable branch id, such as `B001`.
 - `name`: human-readable branch name.
-- `type`: one of the BranchOS branch types.
-- `status`: one of the BranchOS branch states.
+- `type`: one of the Branch Builder branch types.
+- `status`: one of the Branch Builder branch states.
 - `parent`: `ROOT` or another branch id.
 - `depends_on`: branch ids that must be resolved first.
 - `purpose`: why this branch exists.

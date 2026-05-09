@@ -1,18 +1,18 @@
-# BranchOS
+# Branch Builder
 
 [English](README.md) | [Simplified Chinese](README.zh-CN.md)
 
 [![Demo](https://img.shields.io/badge/demo-5%20checkpoints%20passing-brightgreen)](#run-the-demo)
-[![Python](https://img.shields.io/badge/python-stdlib%20only-blue)](skills/branchos/scripts/validate_branch_state.py)
-[![Agent Skill](https://img.shields.io/badge/agent-skill-purple)](skills/branchos/SKILL.md)
+[![Python](https://img.shields.io/badge/python-stdlib%20only-blue)](skills/branch-builder/scripts/validate_branch_state.py)
+[![Planning Layer](https://img.shields.io/badge/planning-layer-purple)](skills/branch-builder/SKILL.md)
 [![Harness](https://img.shields.io/badge/harness-agnostic-teal)](docs/harness_integration.md)
 [![Status](https://img.shields.io/badge/status-v0.5%20task--aware-lightgrey)](#design-boundaries)
 
 **Architecture-first virtual task branching for agentic work.**
 
-BranchOS helps an agent stop treating complex work as a flat checklist. It creates a virtual branch graph, routes tools and subagents through scoped branch packets, and merges outputs only after merge contracts pass.
+Branch Builder helps an agent stop treating complex work as a flat checklist. It creates a virtual branch graph, routes tools and subagents through scoped branch packets, and merges outputs only after merge contracts pass.
 
-It can run as a standalone skill, or as the shared planning layer inside [Fabric](https://github.com/Fly-Carrot/Fabric) and [Agent Shared Fabric](https://github.com/Fly-Carrot/agent-shared-fabric). It is not Git branching. It is task architecture.
+It is packaged in skill format for portability, but it should be treated as a root-task planning layer, not as a repeatedly invoked tool skill. It can run standalone or as the shared planning layer inside [Fabric](https://github.com/Fly-Carrot/Fabric) and [Agent Shared Fabric](https://github.com/Fly-Carrot/agent-shared-fabric). It is not Git branching. It is task architecture.
 
 ```text
 complex task -> virtual branch graph -> branch packets -> scoped dispatch -> merge contracts -> final synthesis
@@ -23,13 +23,13 @@ complex task -> virtual branch graph -> branch packets -> scoped dispatch -> mer
 Paste this into your agent or project instructions:
 
 ```text
-Use BranchOS as the planning layer for medium or complex tasks.
+Use Branch Builder as the planning layer for medium or complex tasks.
 
-BranchOS is virtual task branching, not Git branching.
-After normal harness boot and context loading, initialize or load `.agents/branchos/branch_state.yaml`.
-Never create BranchOS state with `touch` or `echo '{}'`; use the BranchOS init script when state is missing or invalid.
+Branch Builder is virtual task branching, not Git branching.
+After normal harness boot and context loading, initialize or load `.agents/branch-builder/branch_state.yaml`.
+Never create Branch Builder state with `touch` or `echo '{}'`; use the Branch Builder init script when state is missing or invalid.
 Run one root task lifecycle only. Do not run boot, postflight, or the full lifecycle per virtual branch.
-If the harness has a shared skill root, check that before declaring BranchOS unavailable.
+If the harness has a shared planning-layer root, check that before declaring Branch Builder unavailable.
 
 Before specialist dispatch, create a branch packet.
 Do not use init --force to fix pre_dispatch; prepare a working branch packet instead.
@@ -41,22 +41,22 @@ Final synthesis should use merged branch outputs only.
 Local checkpoint adapter:
 
 ```bash
-python3 skills/branchos/scripts/init_branch_state.py --objective "<current task objective>" --complexity medium
-python3 adapters/local/branchos_checkpoint.py --checkpoint task_start --emit-summary
-python3 skills/branchos/scripts/prepare_dispatch.py --name "<dispatch branch>" --scope "<bounded scope>" --expected-output "<expected result>" --capability scripts:"<tool>"
-python3 adapters/local/branchos_checkpoint.py --checkpoint pre_dispatch --emit-summary
-python3 skills/branchos/scripts/resolve_branch.py --branch-id B001 --status ready_to_merge --output "<branch result summary>"
-python3 adapters/local/branchos_checkpoint.py --checkpoint pre_merge --emit-summary
-python3 skills/branchos/scripts/resolve_branch.py --branch-id B001 --status merged --output "<merged branch result>"
-python3 adapters/local/branchos_checkpoint.py --checkpoint final_response --emit-summary --emit-delta
+python3 skills/branch-builder/scripts/init_branch_state.py --objective "<current task objective>" --complexity medium
+python3 adapters/local/branch_builder_checkpoint.py --checkpoint task_start --emit-summary
+python3 skills/branch-builder/scripts/prepare_dispatch.py --name "<dispatch branch>" --scope "<bounded scope>" --expected-output "<expected result>" --capability scripts:"<tool>"
+python3 adapters/local/branch_builder_checkpoint.py --checkpoint pre_dispatch --emit-summary
+python3 skills/branch-builder/scripts/resolve_branch.py --branch-id B001 --status ready_to_merge --output "<branch result summary>"
+python3 adapters/local/branch_builder_checkpoint.py --checkpoint pre_merge --emit-summary
+python3 skills/branch-builder/scripts/resolve_branch.py --branch-id B001 --status merged --output "<merged branch result>"
+python3 adapters/local/branch_builder_checkpoint.py --checkpoint final_response --emit-summary --emit-delta
 ```
 
 ## Shared Fabric Install
 
-For Global Agent Fabric-style harnesses, install BranchOS once into the shared skill root:
+For Global Agent Fabric-style harnesses, install Branch Builder once into the shared planning-layer root:
 
 ```bash
-python3 adapters/shared_fabric/install_branchos_shared_fabric.py \
+python3 adapters/shared_fabric/install_branch_builder_shared_fabric.py \
   --global-root /path/to/global-agent-fabric \
   --update-global-rule \
   --export-antigravity
@@ -65,19 +65,19 @@ python3 adapters/shared_fabric/install_branchos_shared_fabric.py \
 Then every workspace can use the shared scripts while keeping branch state local:
 
 ```bash
-python3 /path/to/global-agent-fabric/skills/generated/branchos/scripts/init_branch_state.py \
+python3 /path/to/global-agent-fabric/skills/generated/branch-builder/scripts/init_branch_state.py \
   --workspace /path/to/workspace \
   --objective "<current task objective>" \
   --complexity medium
 ```
 
-Use the shared `prepare_dispatch.py`, `resolve_branch.py`, and `branchos_checkpoint.py` for dispatch and closure. Full sequence: [`docs/harness_integration.md`](docs/harness_integration.md).
+Use the shared `prepare_dispatch.py`, `resolve_branch.py`, and `branch_builder_checkpoint.py` for dispatch and closure. Full sequence: [`docs/harness_integration.md`](docs/harness_integration.md).
 
 Workspace state stays in:
 
 ```text
-<workspace>/.agents/branchos/branch_state.yaml
-<workspace>/.agents/branchos/branch_events.ndjson
+<workspace>/.agents/branch-builder/branch_state.yaml
+<workspace>/.agents/branch-builder/branch_events.ndjson
 ```
 
 ## Example
@@ -86,7 +86,7 @@ Task:
 
 > Design a research-grade bird-acoustic analysis pipeline that ingests field recordings, detects bird vocalizations, computes ecological indicators, validates model quality, and produces a reproducible report.
 
-BranchOS turns it into:
+Branch Builder turns it into:
 
 ```mermaid
 flowchart TB
@@ -110,7 +110,7 @@ flowchart TB
     S3 -. validates .-> B4
 ```
 
-Each branch has a purpose, allowed capabilities, expected output, and merge contract. Full visual walkthrough: [`docs/branchos_visual_report.md`](docs/branchos_visual_report.md)
+Each branch has a purpose, allowed capabilities, expected output, and merge contract. Full visual walkthrough: [`docs/branch_builder_visual_report.md`](docs/branch_builder_visual_report.md)
 
 ## Run The Demo
 
@@ -126,14 +126,14 @@ Expected output:
 [3/5] pre_merge fixture: ok
 [4/5] final_response fixture: ok
 [5/5] unresolved final_response guard: ok
-BranchOS GitHub intro test passed.
+Branch Builder GitHub intro test passed.
 ```
 
 ## What Is Included
 
 ```text
-skills/branchos/                         # portable skill
-skills/branchos/scripts/                 # validator + checkpoint adapter
+skills/branch-builder/                         # portable planning-layer package
+skills/branch-builder/scripts/                 # validator + checkpoint adapter
 adapters/local/                          # project-local adapter
 adapters/shared_fabric/                  # shared fabric installer
 examples/github_intro/                   # runnable proof
@@ -143,17 +143,18 @@ docs/                                    # integration and visual reports
 ## Docs
 
 - [Harness integration](docs/harness_integration.md)
-- [Visual branch report](docs/branchos_visual_report.md)
+- [Visual branch report](docs/branch_builder_visual_report.md)
 - [GitHub intro test](docs/github_intro_test.md)
-- [BranchOS skill](skills/branchos/SKILL.md)
+- [Branch Builder planning-layer package](skills/branch-builder/SKILL.md)
 - Chinese docs: [README.zh-CN.md](README.zh-CN.md)
 
 ## Design Boundaries
 
-- BranchOS is not Git branching.
-- BranchOS is not a workflow runtime.
-- BranchOS does not replace runtime boot, phase logging, postflight sync, or memory systems.
-- BranchOS keeps task state local and leaves durable memory write-back to the host harness.
+- Branch Builder is not Git branching.
+- Branch Builder is not a workflow runtime.
+- Branch Builder is not a traditional repeatedly-invoked skill.
+- Branch Builder does not replace runtime boot, phase logging, postflight sync, or memory systems.
+- Branch Builder keeps task state local and leaves durable memory write-back to the host harness.
 
 ## Tags
 

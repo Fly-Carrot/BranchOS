@@ -1,19 +1,21 @@
 ---
-name: branchos
-description: 用于需要架构优先规划的 medium-to-complex 任务。BranchOS 会在路由 skills、MCP tools 或 subagents 之前创建并维护虚拟任务分支、branch packets、merge contracts 和 branch-state checkpoints。它不是 Git branching，也不替代 runtime-specific boot、phase logging 或 postflight synchronization。
+name: branch-builder
+description: 用于需要架构优先规划的 medium-to-complex 根任务。Branch Builder 每个 root task 最多激活一次，用来创建并维护虚拟任务分支、branch packets、merge contracts 和 branch-state checkpoints，再路由 skills、MCP tools 或 subagents。它不是 Git branching，不是可反复调用的普通 tool skill，也不替代 runtime-specific boot、phase logging 或 postflight synchronization。
 metadata:
   short-description: 架构优先的虚拟任务分支系统
 ---
 
-# BranchOS
+# Branch Builder
 
-BranchOS 是一个 meta-planning skill。它把复杂用户目标转化为虚拟分支图，并在任务推进过程中持续维护这个图。
+Branch Builder 是一个用 skill format 打包的 root-task planning layer。它把复杂用户目标转化为虚拟分支图，并在任务推进过程中持续维护这个图。
+
+把它当成 activation protocol：对一个 root task 初始化一次，然后通过 checkpoints 更新分支状态。不要像普通 specialist skill 那样反复调用它。
 
 虚拟分支不是 Git 分支。它是一个有边界的任务上下文，包含目的、输入、允许调用的能力、交付物、状态和合并契约。
 
 ## 何时使用
 
-当任务满足以下条件时使用 BranchOS：
+当任务满足以下条件时使用 Branch Builder：
 
 - 复杂度为 medium 或更高；
 - 跨越多个领域、文件、工具、skills、MCP servers 或 agents；
@@ -21,12 +23,12 @@ BranchOS 是一个 meta-planning skill。它把复杂用户目标转化为虚拟
 - 包含不确定性、竞争方案或有意义的 failure modes；
 - 需要 research、implementation、verification 和 synthesis。
 
-不要为简单一步回答、小修改或短 checklist 足够处理的任务启用 BranchOS。
+不要为简单一步回答、小修改或短 checklist 足够处理的任务启用 Branch Builder。
 
 ## 核心流程
 
 1. 确认 root objective 和 locked constraints。
-2. 判断是否需要 BranchOS；如果需要，初始化或加载合法的 branch state。
+2. 判断是否需要 Branch Builder；如果需要，初始化或加载合法的 branch state。
 3. 让 agent 根据任务形状自行决定分支结构，不强制固定模板。
 4. 区分 standing branches 和 dynamic working branches。
 5. 在路由 skill、MCP tool、script 或 subagent 之前创建 working branch packet。可用时使用 `scripts/prepare_dispatch.py`。
@@ -86,7 +88,7 @@ python3 scripts/prepare_dispatch.py --workspace <workspace> --name "<dispatch br
 python3 scripts/resolve_branch.py --workspace <workspace> --branch-id B001 --status merged --output "<branch result summary>"
 ```
 
-BranchOS checkpoint error 是规划层信号，应该报告出来，但不应该阻止宿主 harness 继续运行 canonical postflight 或 memory sync。
+Branch Builder checkpoint error 是规划层信号，应该报告出来，但不应该阻止宿主 harness 继续运行 canonical postflight 或 memory sync。
 
 ## References
 
@@ -102,10 +104,10 @@ BranchOS checkpoint error 是规划层信号，应该报告出来，但不应该
 
 推荐项目本地路径：
 
-- `.agents/branchos/branch_state.yaml`
-- `.agents/branchos/branch_events.ndjson`
+- `.agents/branch-builder/branch_state.yaml`
+- `.agents/branch-builder/branch_events.ndjson`
 
-不要用 `touch` 或 `echo '{}'` 创建 state file；空对象不是合法的 BranchOS 分支图。如果 state 缺失、为空或格式无效，用下面命令初始化或修复：
+不要用 `touch` 或 `echo '{}'` 创建 state file；空对象不是合法的 Branch Builder 分支图。如果 state 缺失、为空或格式无效，用下面命令初始化或修复：
 
 ```bash
 python3 scripts/init_branch_state.py --workspace <workspace> --objective "<current task objective>" --complexity medium

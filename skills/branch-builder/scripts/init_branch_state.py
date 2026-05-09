@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Initialize or repair a workspace-local BranchOS branch_state file."""
+"""Initialize or repair a workspace-local Branch Builder branch_state file."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 
-DEFAULT_OBJECTIVE = "Activate BranchOS planning layer for the current task."
+DEFAULT_OBJECTIVE = "Activate Branch Builder planning layer for the current task."
 
 
 def local_now() -> str:
@@ -25,7 +25,7 @@ def stamp() -> str:
 
 
 def default_task_id() -> str:
-    return f"BRANCHOS-{datetime.now().astimezone().strftime('%Y%m%d-%H%M%S-%f')}"
+    return f"BRANCH-BUILDER-{datetime.now().astimezone().strftime('%Y%m%d-%H%M%S-%f')}"
 
 
 def normalize_text(value: Any) -> str:
@@ -136,8 +136,8 @@ def make_state(task_id: str, objective: str, complexity: str) -> dict[str, Any]:
             "current_phase": "route",
             "locked_constraints": [],
             "success_criteria": [
-                "BranchOS state is valid before task_start checkpoint.",
-                "Specialized dispatch uses branch packets when BranchOS is active.",
+                "Branch Builder state is valid before task_start checkpoint.",
+                "Specialized dispatch uses branch packets when Branch Builder is active.",
                 "Final synthesis reports unresolved working branches.",
             ],
         },
@@ -204,7 +204,7 @@ def append_event(events_path: Path, event: dict[str, Any]) -> None:
 
 def main() -> int:
     script_dir = Path(__file__).resolve().parent
-    parser = argparse.ArgumentParser(description="Initialize or repair BranchOS branch state.")
+    parser = argparse.ArgumentParser(description="Initialize or repair Branch Builder branch state.")
     parser.add_argument("--workspace", type=Path, default=Path.cwd())
     parser.add_argument("--state", type=Path)
     parser.add_argument("--events", type=Path)
@@ -228,8 +228,8 @@ def main() -> int:
     workspace = args.workspace.expanduser().resolve()
     objective = args.objective or DEFAULT_OBJECTIVE
     objective_is_explicit = bool(args.objective and args.objective.strip())
-    state_path = (args.state or workspace / ".agents" / "branchos" / "branch_state.yaml").expanduser()
-    events_path = (args.events or workspace / ".agents" / "branchos" / "branch_events.ndjson").expanduser()
+    state_path = (args.state or workspace / ".agents" / "branch-builder" / "branch_state.yaml").expanduser()
+    events_path = (args.events or workspace / ".agents" / "branch-builder" / "branch_events.ndjson").expanduser()
     state_path = state_path.resolve()
     events_path = events_path.resolve()
     validator = args.validator.expanduser().resolve()
@@ -288,7 +288,7 @@ def main() -> int:
         "task_id": task_id,
         "workspace": str(workspace),
         "status": "ok" if existing_valid else "error",
-        "summary": f"BranchOS state initialization: {action}",
+        "summary": f"Branch Builder state initialization: {action}",
         "state": str(state_path),
         "backup": str(backup_path) if backup_path else "",
         "errors": validation_errors,

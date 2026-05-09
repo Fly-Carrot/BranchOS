@@ -1,6 +1,6 @@
 # Anti-Overplanning Rules
 
-BranchOS exists to improve execution, not to create ceremony.
+Branch Builder exists to improve execution, not to create ceremony.
 
 ## Do Less When
 

@@ -1,6 +1,6 @@
-# BranchOS Visual Report
+# Branch Builder Visual Report
 
-[English](branchos_visual_report.md) | [Simplified Chinese](branchos_visual_report.zh-CN.md)
+[English](branch_builder_visual_report.md) | [Simplified Chinese](branch_builder_visual_report.zh-CN.md)
 
 This report explains the `examples/github_intro` demo: what the example is, what the branch graph looks like, how each branch operates, and what the test validates.
 
@@ -121,7 +121,7 @@ Expected output:
 [3/5] pre_merge fixture: ok
 [4/5] final_response fixture: ok
 [5/5] unresolved final_response guard: ok
-BranchOS GitHub intro test passed.
+Branch Builder GitHub intro test passed.
 ```
 
 What the checkpoints prove:
@@ -136,7 +136,7 @@ What the checkpoints prove:
 
 ## 7. Why The Demo Matters
 
-The demo shows that BranchOS can:
+The demo shows that Branch Builder can:
 
 1. Turn a complex task into standing and working branches.
 2. Route specialist work through branch packets.

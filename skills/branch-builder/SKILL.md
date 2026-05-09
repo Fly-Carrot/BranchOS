@@ -1,19 +1,21 @@
 ---
-name: branchos
-description: Use for medium-to-complex tasks that need architecture-first planning through a virtual branch graph. BranchOS creates and maintains task branches, branch packets, merge contracts, and branch-state checkpoints before routing skills, MCP tools, or subagents. It is not Git branching and does not replace runtime-specific boot, phase logging, or postflight synchronization.
+name: branch-builder
+description: Activate once per medium-to-complex root task when architecture-first planning through a virtual branch graph is needed. Branch Builder creates and maintains task branches, branch packets, merge contracts, and branch-state checkpoints before routing skills, MCP tools, or subagents. It is not Git branching, not a repeatedly invoked tool skill, and does not replace runtime-specific boot, phase logging, or postflight synchronization.
 metadata:
   short-description: Architecture-first virtual task branching
 ---
 
-# BranchOS
+# Branch Builder
 
-BranchOS is a meta-planning skill. It turns a complex user objective into a virtual branch graph, then keeps that graph alive while the task proceeds.
+Branch Builder is a root-task planning layer packaged in skill format for portability. It turns a complex user objective into a virtual branch graph, then keeps that graph alive while the task proceeds.
+
+Treat it as an activation protocol: initialize it once for the root task, then update its branch state through checkpoints. Do not repeatedly invoke it like a normal specialist skill.
 
 A virtual branch is not a Git branch. It is a bounded task context with a purpose, inputs, allowed capabilities, deliverables, status, and merge contract.
 
 ## When To Use
 
-Use BranchOS when the task:
+Use Branch Builder when the task:
 
 - has medium or higher complexity;
 - spans multiple domains, files, tools, skills, MCP servers, or agents;
@@ -21,12 +23,12 @@ Use BranchOS when the task:
 - includes uncertainty, competing approaches, or meaningful failure modes;
 - requires research, implementation, verification, and synthesis.
 
-Do not use BranchOS for simple one-step answers, tiny edits, or tasks where a short checklist is enough.
+Do not use Branch Builder for simple one-step answers, tiny edits, or tasks where a short checklist is enough.
 
 ## Core Workflow
 
 1. Confirm the root objective and locked constraints.
-2. Decide whether BranchOS is warranted; if yes, initialize or load a valid branch state.
+2. Decide whether Branch Builder is warranted; if yes, initialize or load a valid branch state.
 3. Let the agent choose the branch structure from the task shape. Do not force a fixed template.
 4. Separate standing branches from dynamic working branches.
 5. Before routing a skill, MCP tool, script, or subagent, create a working branch packet. Use `scripts/prepare_dispatch.py` when available.
@@ -86,7 +88,7 @@ If `final_response` reports unresolved working branches, do not use `init --forc
 python3 scripts/resolve_branch.py --workspace <workspace> --branch-id B001 --status merged --output "<branch result summary>"
 ```
 
-A BranchOS checkpoint error is a planning-layer signal. It should be reported, but it must not prevent the host harness from running its canonical postflight or memory sync.
+A Branch Builder checkpoint error is a planning-layer signal. It should be reported, but it must not prevent the host harness from running its canonical postflight or memory sync.
 
 ## References
 
@@ -102,10 +104,10 @@ Read only what is needed:
 
 Preferred project-local paths:
 
-- `.agents/branchos/branch_state.yaml`
-- `.agents/branchos/branch_events.ndjson`
+- `.agents/branch-builder/branch_state.yaml`
+- `.agents/branch-builder/branch_events.ndjson`
 
-Never create the state file with `touch` or `echo '{}'`; an empty object is not a valid BranchOS branch graph. If state is missing, empty, or invalid, initialize or repair it with:
+Never create the state file with `touch` or `echo '{}'`; an empty object is not a valid Branch Builder branch graph. If state is missing, empty, or invalid, initialize or repair it with:
 
 ```bash
 python3 scripts/init_branch_state.py --workspace <workspace> --objective "<current task objective>" --complexity medium

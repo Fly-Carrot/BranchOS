@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Local BranchOS checkpoint adapter.
+"""Local Branch Builder checkpoint adapter.
 
-This script validates a project-local BranchOS state file and appends a compact
+This script validates a project-local Branch Builder state file and appends a compact
 local branch event. It intentionally does not write global memory or sync logs.
 """
 
@@ -23,7 +23,7 @@ OPEN_STATUSES = {"proposed", "active", "blocked", "reviewing", "ready_to_merge",
 
 def initialization_hint(workspace: Path, init_script: Path) -> str:
     return (
-        "Do not initialize BranchOS with touch or echo '{}'. Run: "
+        "Do not initialize Branch Builder with touch or echo '{}'. Run: "
         f"python3 {shlex.quote(str(init_script))} --workspace {shlex.quote(str(workspace))} "
         '--objective "<current task objective>" --complexity medium'
     )
@@ -61,12 +61,12 @@ def load_state(path: Path, workspace: Path, init_script: Path) -> dict[str, Any]
         text = path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(
-            f"BranchOS state file not found: {path}. "
+            f"Branch Builder state file not found: {path}. "
             + initialization_hint(workspace, init_script)
         ) from exc
     if not text.strip():
         raise SystemExit(
-            f"BranchOS state file is empty: {path}. "
+            f"Branch Builder state file is empty: {path}. "
             + initialization_hint(workspace, init_script)
         )
     try:
@@ -202,19 +202,19 @@ def checkpoint_delta(state: dict[str, Any], events_path: Path) -> dict[str, Any]
 
 def main() -> int:
     root = workspace_root()
-    parser = argparse.ArgumentParser(description="Run a local BranchOS checkpoint.")
+    parser = argparse.ArgumentParser(description="Run a local Branch Builder checkpoint.")
     parser.add_argument("--checkpoint", required=True, choices=sorted(CHECKPOINTS))
-    parser.add_argument("--state", type=Path, default=root / ".agents" / "branchos" / "branch_state.yaml")
-    parser.add_argument("--events", type=Path, default=root / ".agents" / "branchos" / "branch_events.ndjson")
-    parser.add_argument("--validator", type=Path, default=root / "skills" / "branchos" / "scripts" / "validate_branch_state.py")
+    parser.add_argument("--state", type=Path, default=root / ".agents" / "branch-builder" / "branch_state.yaml")
+    parser.add_argument("--events", type=Path, default=root / ".agents" / "branch-builder" / "branch_events.ndjson")
+    parser.add_argument("--validator", type=Path, default=root / "skills" / "branch-builder" / "scripts" / "validate_branch_state.py")
     parser.add_argument("--summary", default="")
     parser.add_argument("--emit-summary", action="store_true", help="Include a compact branch map summary in the JSON output.")
     parser.add_argument("--emit-delta", action="store_true", help="Include a compact current-state delta and recent branch events.")
     args = parser.parse_args()
 
-    init_script = root / "skills" / "branchos" / "scripts" / "init_branch_state.py"
-    prepare_script = root / "skills" / "branchos" / "scripts" / "prepare_dispatch.py"
-    resolve_script = root / "skills" / "branchos" / "scripts" / "resolve_branch.py"
+    init_script = root / "skills" / "branch-builder" / "scripts" / "init_branch_state.py"
+    prepare_script = root / "skills" / "branch-builder" / "scripts" / "prepare_dispatch.py"
+    resolve_script = root / "skills" / "branch-builder" / "scripts" / "resolve_branch.py"
     state = load_state(args.state, root, init_script)
     task_id = str(state.get("root_task", {}).get("id") or "session")
     command = [
@@ -239,7 +239,7 @@ def main() -> int:
         "event": args.checkpoint,
         "task_id": task_id,
         "status": validation.get("status", "error"),
-        "summary": args.summary or f"BranchOS checkpoint {args.checkpoint}",
+        "summary": args.summary or f"Branch Builder checkpoint {args.checkpoint}",
         "errors": validation.get("errors", []),
         "warnings": validation.get("warnings", []),
     }
@@ -252,9 +252,9 @@ def main() -> int:
     if needs_resolution_hint(validation):
         result["resolution_hint"] = resolution_hint(root, resolve_script)
     if args.emit_summary:
-        result["branchos_summary"] = checkpoint_summary(state, args.checkpoint)
+        result["branch_builder_summary"] = checkpoint_summary(state, args.checkpoint)
     if args.emit_delta:
-        result["branchos_delta"] = checkpoint_delta(state, args.events)
+        result["branch_builder_delta"] = checkpoint_delta(state, args.events)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return completed.returncode
 

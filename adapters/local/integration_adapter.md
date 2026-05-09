@@ -1,16 +1,16 @@
-# Local BranchOS Adapter
+# Local Branch Builder Adapter
 
 [English](integration_adapter.md) | [Simplified Chinese](integration_adapter.zh-CN.md)
 
-BranchOS is portable at the skill layer. Runtime-specific boot, memory, and sync systems should integrate through a local adapter like this one.
+Branch Builder is portable at the skill layer. Runtime-specific boot, memory, and sync systems should integrate through a local adapter like this one.
 
 ## Placement
 
-Run BranchOS after your runtime has loaded the project context and before specialized dispatch:
+Run Branch Builder after your runtime has loaded the project context and before specialized dispatch:
 
 ```text
 runtime boot
-  -> BranchOS task_start
+  -> Branch Builder task_start
   -> root planning cycle
   -> pre_dispatch before skill/tool/agent calls
   -> pre_merge before synthesis
@@ -23,25 +23,25 @@ Do not run runtime boot once per virtual branch. A virtual branch is not a runti
 ## Checkpoints
 
 ```bash
-python3 skills/branchos/scripts/init_branch_state.py --objective "<current task objective>" --complexity medium
-python3 adapters/local/branchos_checkpoint.py --checkpoint task_start --emit-summary
-python3 skills/branchos/scripts/prepare_dispatch.py --name "<dispatch branch>" --scope "<bounded scope>" --expected-output "<expected result>" --capability scripts:"<tool>"
-python3 adapters/local/branchos_checkpoint.py --checkpoint pre_dispatch --emit-summary
-python3 skills/branchos/scripts/resolve_branch.py --branch-id B001 --status ready_to_merge --output "<branch result summary>"
-python3 adapters/local/branchos_checkpoint.py --checkpoint pre_merge --emit-summary
-python3 skills/branchos/scripts/resolve_branch.py --branch-id B001 --status merged --output "<merged branch result>"
-python3 adapters/local/branchos_checkpoint.py --checkpoint final_response --emit-summary --emit-delta
+python3 skills/branch-builder/scripts/init_branch_state.py --objective "<current task objective>" --complexity medium
+python3 adapters/local/branch_builder_checkpoint.py --checkpoint task_start --emit-summary
+python3 skills/branch-builder/scripts/prepare_dispatch.py --name "<dispatch branch>" --scope "<bounded scope>" --expected-output "<expected result>" --capability scripts:"<tool>"
+python3 adapters/local/branch_builder_checkpoint.py --checkpoint pre_dispatch --emit-summary
+python3 skills/branch-builder/scripts/resolve_branch.py --branch-id B001 --status ready_to_merge --output "<branch result summary>"
+python3 adapters/local/branch_builder_checkpoint.py --checkpoint pre_merge --emit-summary
+python3 skills/branch-builder/scripts/resolve_branch.py --branch-id B001 --status merged --output "<merged branch result>"
+python3 adapters/local/branch_builder_checkpoint.py --checkpoint final_response --emit-summary --emit-delta
 ```
 
 By default, this adapter reads:
 
-- `.agents/branchos/branch_state.yaml`
-- `.agents/branchos/branch_events.ndjson`
+- `.agents/branch-builder/branch_state.yaml`
+- `.agents/branch-builder/branch_events.ndjson`
 
 Both paths are local project state, not global memory.
 Do not create `branch_state.yaml` with `touch` or `echo '{}'`; use the init script above.
 
-Use the JSON `branchos_summary` field for task-start branch visibility and
-`branchos_delta` for final branch-report visibility.
+Use the JSON `branch_builder_summary` field for task-start branch visibility and
+`branch_builder_delta` for final branch-report visibility.
 
 Detailed harness placement: [`../../docs/harness_integration.md`](../../docs/harness_integration.md)
